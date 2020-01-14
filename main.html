@@ -1,0 +1,52 @@
+<html>
+<head>
+<style>
+.panel {
+    display: flex;
+    flex-direction: column;
+}
+.row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+</style>
+</head>
+<body>
+<div class='panel' style='width: 250px'>
+<input type="file" id='cFile'>
+<a id="download">Download Character</a>
+<div class='row'>Name: <input type='text' id='name'></div>
+<div class='row'>Class: <select id='class'></select></div>
+<div class='row'>Race: <select id='race'></select></div>
+<div class='row'>Age: <input type='number' id='age' min='0'></div>
+</div>
+<script>
+var c = {
+    "name":"josephine",
+    "age":105
+}
+
+// store uploaded character in variable c
+const parsed = jsonText => JSON.parse(jsonText);
+const fr = new FileReader();
+function handleFileSelect (evt){
+    fr.readAsText(evt.target.files[0])
+}
+fr.onload = e => {
+    c = parsed(e.target.result);
+    console.log(c);
+}
+document.getElementById('cFile').addEventListener('change', handleFileSelect, false);
+
+// function to download character
+function postC(){
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(c));
+    var dElement = document.getElementById('download');
+    dElement.setAttribute("href", dataStr);
+    dElement.setAttribute("download", c.name+".json");
+}
+
+</script>
+</body>
+</html>
