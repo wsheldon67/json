@@ -1,6 +1,9 @@
 <html>
 <head>
 <style>
+*{
+    font-family: sans-serif;
+}
 .panel {
     display: flex;
     flex-direction: column;
@@ -9,77 +12,97 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 input[type="number"]{
     width: 60px
 }
+input[type="text"]{
+    width: 140px;
+}
+h2{
+    background-color: lightgreen;
+    font-size: 1em;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+h3{
+    background-color: lavender;
+    text-align: center;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    margin-top: 0px;
+    margin-bottom: 1px;
+    font-size: 1em;
+}
+body{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+th,td{
+    text-align: center;
+}
 </style>
+<script src='data.js'></script>
 </head>
 <body onload='onload()'>
-<div class='panel' style='width: 250px'>
-    <input type="file" id='cFile'>
-    <a id="download">Download Character</a>
+<div class='panel' style='width: 200px'>
+    <input class='row' type="file" id='cFile'>
+    <h2>General</h2>
     <div class='row'>Name: <input type='text' id='name' oninput="store('name')"></div>
     <div class='row'>Class: <select id='class' oninput="store('class')"></select></div>
     <div class='row'>Race: <select id='race' oninput="store('race')"></select></div>
-    <div class='row'>Age: <button onclick='rollForAge()'>Roll</button><input type='number' id='age' min='0' oninput="store('age')"></div>
+    <div class='row'>Sex: <select id='gender' oninput="store('sex')"><option>Male</option><option>Female</option></select></div>
+    <div class='row'>Favored Class Bonus: <select id='fcb' oninput="updateType()"><option>+1 HP</option><option>+1 Skill</option></select></div>
+    <h2>Physical</h2>
+    <div class='row'>Size: <div id='size'></div></div>
+    <div class='row'>Speed: <div id='speed'></div></div>
+    <div class='row'>Hit Points: <div id='hp'></div></div>
+    <div class='row'><div>Age: <button onclick='rollForAge()'>Roll</button></div><div id='age'></div></div>
+    <div class='row'><div>Height: <button onclick='rollForHeight()'>Roll</button></div><div id='height'></div></div>
+    <div class='row'><div>Weight: <button onclick='rollForWeight()'>Roll</button></div><div id='weight'></div></div>
+    <h2>Other</h2>
+    <div class='row'><div>Wealth: <button onclick='rollForWealth()'>Roll</button></div><div id='wealth'></div></div>
+    <div class='row'>Languages: <div id='lang'></div></div>
+    <div class='row'>Senses: <div id='sense'></div></div>
+    <div class='row'>Defense: <div id='defense'></div></div>
+    <div class='row'>Offense: <div id='offense'></div></div>
+    <div class='row'>Skills: <div id='skillBonus'></div></div>
+    <div class='row'>Special: <div id='special'></div></div>
+    <div class='row'><button onclick='downloadC()'>Save Character</button><a id="download">Download</a></div>
 </div>
-<button onclick='downloadC()'>Save Character</button>
+<div class='panel'>
+    <h2>Abilities: <span id='abilityPoints'></span> Points</h2>
+    <h3 id='rbWrapper'>Race Bonus: <span id='raceBonus'></span></h3>
+    <table id='abilityTable'>
+        <tr><th>Ability</th><th>Points</th><th>Cost</th><th>Race</th><th>Score</th><th>Mod</th></tr>
+    </table>
+</div>
+<div class='panel'>
+    <h2>Skills: <span id='skillPoints'></span> Ranks</h2>
+    <table id='skillTable'>
+        <tr><th>Skill</th><th>Ranks</th><th>Class Bonus</th><th>Ability Mod</th><th>Total</th></tr>
+    </table>
+</div>
+<div class='panel'>
+    <h2>Feats: <span id='feats'></span></h2>
+    <div class='row'><input list='featList' id='feat'><button onclick='addFeat()'>Add</button></div>
+    <datalist id='featList'></datalist>
+    
+</div>
 <script>
 var c = {
-    "name":"josephine",
-    "age":105
+    "class":"Barbarian",
+    "race":"Dwarf",
+    "sex":"Male",
+    "level":1,
+    "skills":{}
 }
-var classData = {
-    'Barbarian':{'Type':'Core','Starting Wealth':3,'AvgStartingGold':105,'RanksLevel':4,'Player':1,'HitDie':12,},
-    'Bard':{'Type':'Core','Starting Wealth':3,'AvgStartingGold':105,'RanksLevel':6,'Player':1,'HitDie':8,},
-    'Cleric':{'Type':'Core','Starting Wealth':4,'AvgStartingGold':140,'RanksLevel':2,'Player':1,'HitDie':8,},
-    'Druid':{'Type':'Core','Starting Wealth':2,'AvgStartingGold':70,'RanksLevel':4,'Player':1,'HitDie':8,},
-    'Fighter':{'Type':'Core','Starting Wealth':5,'AvgStartingGold':175,'RanksLevel':2,'Player':1,'HitDie':10,},
-    'Monk':{'Type':'Core','Starting Wealth':1,'AvgStartingGold':35,'RanksLevel':4,'Player':1,'HitDie':8,},
-    'Paladin':{'Type':'Core','Starting Wealth':5,'AvgStartingGold':175,'RanksLevel':2,'Player':1,'HitDie':10,},
-    'Ranger':{'Type':'Core','Starting Wealth':5,'AvgStartingGold':175,'RanksLevel':6,'Player':1,'HitDie':10,},
-    'Rogue':{'Type':'Core','Starting Wealth':4,'AvgStartingGold':140,'RanksLevel':8,'Player':1,'HitDie':8,},
-    'Sorcerer':{'Type':'Core','Starting Wealth':2,'AvgStartingGold':70,'RanksLevel':2,'Player':1,'HitDie':6,},
-    'Wizard':{'Type':'Core','Starting Wealth':2,'AvgStartingGold':70,'RanksLevel':2,'Player':1,'HitDie':6,},
-    'Mage':{'Type':'Base','Starting Wealth':4,'AvgStartingGold':140,'RanksLevel':2,'Player':1,'HitDie':8,},
-}
-var raceData = {
-    'Dwarf':{'con':2,'wis':2,'cha':-2,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'dwarf','Speed':20,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Dwarven','Senses':'Darkvision 60 ft.','Defensive Traits':'AC bonus, Saving Throw bonus, CMD bonus','Offensive Traits':'Attack bonus, weapon familiarity','Skill Bonuses':'Appraise, Perception','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':11,'Source':'Core','BaseAge':40,'Intuitive':'3d6','SelfTaught':'5d6','Trained':'7d6','mHeight':45,'mHeightMod':'2d4','mWeight':150,'mWeightMod':'14d4','fHeight':43,'fHeightMod':'2d4','fWeight':120,'fWeightMod':'14d4',},
-    'Elf':{'con':0,'wis':0,'cha':0,'dex':2,'str':-2,'int':2,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'elf','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Elven','Senses':'Low-light vision','Defensive Traits':'Elven immunities','Offensive Traits':'Weapon familiarity','Skill Bonuses':'Perception','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':10,'Source':'Core','BaseAge':110,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'10d6','mHeight':64,'mHeightMod':'2d8','mWeight':110,'mWeightMod':'6d8','fHeight':64,'fHeightMod':'2d6','fWeight':90,'fWeightMod':'6d6',},
-    'Gnome':{'con':2,'wis':0,'cha':2,'dex':0,'str':-2,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'gnome','Speed':20,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Gnome, Sylvan','Senses':'Low-light vision','Defensive Traits':'Defensive training, illusion resistance','Offensive Traits':'Hatred, weapon familiarity','Skill Bonuses':'Perception, Craft or Profession','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'dancing lights, ghost sound, prestidigitation','Race Points':10,'Source':'Core','BaseAge':40,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'9d6','mHeight':36,'mHeightMod':'2d4','mWeight':35,'mWeightMod':'2d4','fHeight':34,'fHeightMod':'2d4','fWeight':30,'fWeightMod':'2d4',},
-    'Half-elf':{'con':0,'wis':0,'cha':0,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'elf, human','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Elven','Senses':'Low-light vision','Defensive Traits':'Elven immunities','Offensive Traits':'','Skill Bonuses':'Perception','Bonus Feats':'Skill Focus','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':10,'Source':'Core','BaseAge':20,'Intuitive':'1d6','SelfTaught':'2d6','Trained':'3d6','mHeight':62,'mHeightMod':'2d8','mWeight':100,'mWeightMod':'10d8','fHeight':60,'fHeightMod':'2d8','fWeight':90,'fWeightMod':'10d8',},
-    'Halfling':{'con':0,'wis':0,'cha':2,'dex':2,'str':-2,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'halfling','Speed':20,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Halfling','Senses':'','Defensive Traits':'Fearless, halfling luck','Offensive Traits':'Weapon familiarity','Skill Bonuses':'Perception, Acrobatics, Climb','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Core','BaseAge':20,'Intuitive':'2d6','SelfTaught':'3d6','Trained':'4d6','mHeight':32,'mHeightMod':'2d4','mWeight':30,'mWeightMod':'2d4','fHeight':30,'fHeightMod':'2d4','fWeight':25,'fWeightMod':'2d4',},
-    'Half-orc':{'con':0,'wis':0,'cha':0,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'human, orc','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Orc','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'Orc ferocity, weapon familiarity','Skill Bonuses':'Intimidate','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':8,'Source':'Core','BaseAge':14,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':58,'mHeightMod':'2d12','mWeight':150,'mWeightMod':'14d12','fHeight':53,'fHeightMod':'2d12','fWeight':110,'fWeightMod':'14d12',},
-    'Human':{'con':0,'wis':0,'cha':0,'dex':0,'str':0,'int':0,'any':2,'Size':'Medium','Type':'Humanoid','Subtype':'human','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common','Senses':'','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'Any one','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Core','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':58,'mHeightMod':'2d10','mWeight':120,'mWeightMod':'10d10','fHeight':53,'fHeightMod':'2d10','fWeight':85,'fWeightMod':'10d10',},
-    'Catfolk':{'con':-2,'wis':0,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'catfolk','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Catfolk','Senses':'Low-light vision','Defensive Traits':'Cat‘s luck','Offensive Traits':'Sprinter','Skill Bonuses':'Perception, Stealth, Survival','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Featured','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':58,'mHeightMod':'2d8','mWeight':120,'mWeightMod':'10d8','fHeight':53,'fHeightMod':'2d8','fWeight':85,'fWeightMod':'10d8',},
-    'Dhampir':{'con':-2,'wis':0,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'dhampir','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common','Senses':'Low-light vision, darkvision, light sensitivity','Defensive Traits':'Undead resistance, resist level drain','Offensive Traits':'','Skill Bonuses':'Bluff, Perception','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'detect undead','Race Points':11,'Source':'Featured','BaseAge':20,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'10d6','mHeight':58,'mHeightMod':'2d10','mWeight':120,'mWeightMod':'10d10','fHeight':53,'fHeightMod':'2d10','fWeight':85,'fWeightMod':'10d10',},
-    'Drow':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'elf','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Elven, Undercommon','Senses':'Superior darkvision, light blindness','Defensive Traits':'Elven immunities, spell resistance','Offensive Traits':'Poison use, weapon familiarity','Skill Bonuses':'Perception','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'dancing lights, darkness, faerie fire','Race Points':14,'Source':'Featured','BaseAge':110,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'10d6','mHeight':64,'mHeightMod':'2d6','mWeight':90,'mWeightMod':'10d6','fHeight':64,'fHeightMod':'2d8','fWeight':110,'fWeightMod':'10d8',},
-    'Fetchling':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common','Senses':'Darkvision, low-light vision','Defensive Traits':'Shadow blending, shadowy resistance','Offensive Traits':'','Skill Bonuses':'Knowledge (planes), Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'disguise self, shadow walk, plane shift','Race Points':17,'Source':'Featured','BaseAge':20,'Intuitive':'1d6','SelfTaught':'2d6','Trained':'3d6','mHeight':64,'mHeightMod':'2d6','mWeight':90,'mWeightMod':'6d6','fHeight':62,'fHeightMod':'2d6','fWeight':80,'fWeightMod':'6d6',},
-    'Goblin':{'con':0,'wis':0,'cha':-2,'dex':4,'str':-2,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'goblinoid','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Goblin','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'Ride, Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':10,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':32,'mHeightMod':'2d4','mWeight':30,'mWeightMod':'2d4','fHeight':30,'fHeightMod':'2d4','fWeight':25,'fWeightMod':'2d4',},
-    'Hobgoblin':{'con':2,'wis':0,'cha':0,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'goblinoid','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Goblin','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Featured','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':50,'mHeightMod':'2d8','mWeight':165,'mWeightMod':'10d8','fHeight':48,'fHeightMod':'2d8','fWeight':145,'fWeightMod':'10d8',},
-    'Ifrit':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Ignan','Senses':'Darkvision','Defensive Traits':'Energy resistance','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'burning hands','Race Points':6,'Source':'Featured','BaseAge':60,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'8d6','mHeight':62,'mHeightMod':'2d8','mWeight':110,'mWeightMod':'10d8','fHeight':60,'fHeightMod':'2d8','fWeight':90,'fWeightMod':'10d8',},
-    'Kobold':{'con':-2,'wis':0,'cha':0,'dex':2,'str':-4,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'reptilian','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Draconic','Senses':'Darkvision, light sensitivity','Defensive Traits':'Armor','Offensive Traits':'','Skill Bonuses':'Craft (trapmaking), Perception, Profession (miner)','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':5,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':30,'mHeightMod':'2d4','mWeight':25,'mWeightMod':'2d4','fHeight':28,'fHeightMod':'2d4','fWeight':20,'fWeightMod':'2d4',},
-    'Orc':{'con':0,'wis':-2,'cha':-2,'dex':0,'str':4,'int':-2,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'orc','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Orc','Senses':'Darkvision, light sensitivity','Defensive Traits':'','Offensive Traits':'Ferocity, weapon familiarity','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':8,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':61,'mHeightMod':'2d12','mWeight':160,'mWeightMod':'14d12','fHeight':57,'fHeightMod':'2d12','fWeight':120,'fWeightMod':'14d12',},
-    'Oread':{'con':0,'wis':2,'cha':-2,'dex':0,'str':2,'int':0,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':20,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Terran','Senses':'Darkvision','Defensive Traits':'Energy resistance (acid 5)','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'magic stone','Race Points':6,'Source':'Featured','BaseAge':60,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'8d6','mHeight':48,'mHeightMod':'2d6','mWeight':150,'mWeightMod':'14d6','fHeight':45,'fHeightMod':'2d6','fWeight':120,'fWeightMod':'14d6',},
-    'Ratfolk':{'con':0,'wis':0,'cha':0,'dex':2,'str':-2,'int':2,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'ratfolk','Speed':20,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'Swarming','Skill Bonuses':'Craft (alchemy), Handle Animal (+4), Perception, Use Magic Device','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':43,'mHeightMod':'2d4','mWeight':65,'mWeightMod':'6d4','fHeight':40,'fHeightMod':'2d4','fWeight':50,'fWeightMod':'6d4',},
-    'Sylph':{'con':-2,'wis':0,'cha':0,'dex':2,'str':0,'int':2,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Auran','Senses':'Darkvision','Defensive Traits':'Energy resistance (electricity 5)','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'feather fall','Race Points':6,'Source':'Featured','BaseAge':60,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'8d6','mHeight':62,'mHeightMod':'2d8','mWeight':100,'mWeightMod':'10d8','fHeight':60,'fHeightMod':'2d8','fWeight':90,'fWeightMod':'10d8',},
-    'Tengu':{'con':-2,'wis':2,'cha':0,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'tengu','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Tengu','Senses':'Low-light vision','Defensive Traits':'','Offensive Traits':'Swordtrained, natural weapon (bite)','Skill Bonuses':'Linguistics (+4), Perception, Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':13,'Source':'Featured','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':48,'mHeightMod':'2d6','mWeight':65,'mWeightMod':'6d6','fHeight':46,'fHeightMod':'2d6','fWeight':55,'fWeightMod':'6d6',},
-    'Tiefling':{'con':0,'wis':0,'cha':-2,'dex':2,'str':0,'int':2,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Abyssal or Infernal','Senses':'Darkvision','Defensive Traits':'Fiendish resistance','Offensive Traits':'','Skill Bonuses':'Bluff, Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'darkness','Race Points':13,'Source':'Featured','BaseAge':60,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'8d6','mHeight':58,'mHeightMod':'2d10','mWeight':120,'mWeightMod':'10d10','fHeight':53,'fHeightMod':'2d10','fWeight':85,'fWeightMod':'10d10',},
-    'Undine':{'con':0,'wis':2,'cha':0,'dex':2,'str':-2,'int':0,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':30,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Aquan','Senses':'Darkvision','Defensive Traits':'Energy resistance (cold 5)','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'hydraulic push','Race Points':7,'Source':'Featured','BaseAge':60,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'8d6','mHeight':58,'mHeightMod':'2d10','mWeight':120,'mWeightMod':'10d10','fHeight':53,'fHeightMod':'2d10','fWeight':85,'fWeightMod':'10d10',},
-    'Duergar':{'con':2,'wis':2,'cha':-4,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'dwarf','Speed':20,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Dwarven, Undercommon','Senses':'Superior darkvision, light sensitivity','Defensive Traits':'Duergar immunities, stability','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'enlarge person, invisibility','Race Points':8,'Source':'Uncommon','BaseAge':40,'Intuitive':'3d6','SelfTaught':'5d6','Trained':'7d6','mHeight':45,'mHeightMod':'2d4','mWeight':150,'mWeightMod':'14d8','fHeight':43,'fHeightMod':'2d4','fWeight':120,'fWeightMod':'14d8',},
-    'Gillman':{'con':2,'wis':-2,'cha':2,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'aquatic','Speed':30,'Swim':30,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Aboleth','Senses':'','Defensive Traits':'Enchantment resistance','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':'','Source':'Uncommon','BaseAge':20,'Intuitive':'1d6','SelfTaught':'2d6','Trained':'3d6','mHeight':58,'mHeightMod':'2d10','mWeight':120,'mWeightMod':'10d10','fHeight':53,'fHeightMod':'2d10','fWeight':85,'fWeightMod':'10d10',},
-    'Grippli':{'con':0,'wis':2,'cha':0,'dex':2,'str':-2,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'grippli','Speed':30,'Swim':0,'Climb':20,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Grippli','Senses':'Darkvision','Defensive Traits':'Swamp stride','Offensive Traits':'Weapon familiarity','Skill Bonuses':'Stealth (+4)','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':6,'Source':'Uncommon','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':19,'mHeightMod':'2d4','mWeight':25,'mWeightMod':'2d4','fHeight':17,'fHeightMod':'2d4','fWeight':20,'fWeightMod':'2d4',},
-    'Kitsune':{'con':0,'wis':0,'cha':0,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'kitsune, shapechanger','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Sylvan','Senses':'Low-light vision','Defensive Traits':'','Offensive Traits':'Natural weapon (bite)','Skill Bonuses':'Acrobatics','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'change shape, dancing lights','Race Points':'','Source':'Uncommon','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':58,'mHeightMod':'2d8','mWeight':100,'mWeightMod':'10d8','fHeight':53,'fHeightMod':'2d8','fWeight':85,'fWeightMod':'10d8',},
-    'Merfolk':{'con':0,'wis':0,'cha':0,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'aquatic','Speed':5,'Swim':50,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Aquan','Senses':'Low-light vision','Defensive Traits':'Natural armor, legless','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':'','Source':'Uncommon','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':70,'mHeightMod':'2d10','mWeight':145,'mWeightMod':'10d10','fHeight':68,'fHeightMod':'2d10','fWeight':135,'fWeightMod':'10d10',},
-    'Nagaji':{'con':0,'wis':0,'cha':0,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'reptilian','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Draconic','Senses':'Low-light vision','Defensive Traits':'Armored scales, resistant','Offensive Traits':'','Skill Bonuses':'Handle Animal, Perception','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':'','Source':'Uncommon','BaseAge':20,'Intuitive':'1d6','SelfTaught':'2d6','Trained':'3d6','mHeight':69,'mHeightMod':'2d10','mWeight':180,'mWeightMod':'14d10','fHeight':66,'fHeightMod':'2d10','fWeight':160,'fWeightMod':'14d10',},
-    'Samsaran':{'con':0,'wis':0,'cha':0,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'samsaran','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Samsaran','Senses':'Low-light vision','Defensive Traits':'Lifebound','Offensive Traits':'','Skill Bonuses':'Any two skills','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'comprehend languages, deathwatch, stabilize','Race Points':'','Source':'Uncommon','BaseAge':60,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'8d6','mHeight':64,'mHeightMod':'2d8','mWeight':110,'mWeightMod':'10d8','fHeight':66,'fHeightMod':'2d8','fWeight':110,'fWeightMod':'10d8',},
-    'Strix':{'con':0,'wis':0,'cha':0,'dex':0,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'strix','Speed':30,'Swim':0,'Climb':0,'Fly':60,'Clumsy':0,'Starting Languages':'Strix','Senses':'Darkvision, low-light vision','Defensive Traits':'Suspicious','Offensive Traits':'Hatred','Skill Bonuses':'Perception, Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':'','Source':'Uncommon','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':64,'mHeightMod':'2d8','mWeight':125,'mWeightMod':'10d8','fHeight':62,'fHeightMod':'2d8','fWeight':115,'fWeightMod':'10d8',},
-    'Suli':{'con':0,'wis':0,'cha':2,'dex':0,'str':2,'int':-2,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, 1 elemental (Aquan, Auran, Ignan, or Terran)','Senses':'Low-light vision','Defensive Traits':'Energy resistance 5 (acid, cold, electricity, and fire)','Offensive Traits':'','Skill Bonuses':'Diplomacy, Sense Motive','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'Elemental assault','Race Points':16,'Source':'Uncommon','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':58,'mHeightMod':'2d10','mWeight':120,'mWeightMod':'10d10','fHeight':53,'fHeightMod':'2d10','fWeight':85,'fWeightMod':'10d10',},
-    'Svirfneblin':{'con':0,'wis':2,'cha':-2,'dex':2,'str':-2,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'gnome','Speed':20,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Gnome, Undercommon','Senses':'Darkvision 120 ft., low-light vision','Defensive Traits':'+2 AC, +2 to all saving throws, spell resistance','Offensive Traits':'+1 attack vs. humanoids (reptilians) and humanoids (dwarvens)','Skill Bonuses':'Stealth, Craft (alchemy), Perception; stonecunning','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'Constant—nondetection; 1/day—blindness/deafness, blur, disguise self','Race Points':24,'Source':'Uncommon','BaseAge':40,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'9d6','mHeight':36,'mHeightMod':'2d4','mWeight':35,'mWeightMod':'2d4','fHeight':34,'fHeightMod':'2d4','fWeight':30,'fWeightMod':'2d4',},
-    'Vanara':{'con':0,'wis':2,'cha':-2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'vanara','Speed':30,'Swim':0,'Climb':20,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Vanaran','Senses':'Low-light vision','Defensive Traits':'Prehensile tail','Offensive Traits':'','Skill Bonuses':'Acrobatics, Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':8,'Source':'Uncommon','BaseAge':14,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':56,'mHeightMod':'2d8','mWeight':105,'mWeightMod':'10d8','fHeight':50,'fHeightMod':'2d8','fWeight':90,'fWeightMod':'10d8',},
-}
-
 // store uploaded character in variable c
 const parsed = jsonText => JSON.parse(jsonText);
 const fr = new FileReader();
@@ -105,12 +128,52 @@ function postC(){
     console.log('not done yet');
 }
 
+function updateType(){
+    c.size = raceData[c.race].Size
+    document.getElementById('size').innerHTML = c.size;
+    c.speed = raceData[c.race].Speed
+    document.getElementById('speed').innerHTML = c.speed;
+    c.lang = raceData[c.race]["Starting Languages"].split(", ")
+    document.getElementById('lang').innerHTML = raceData[c.race]["Starting Languages"];
+    document.getElementById('sense').innerHTML = raceData[c.race]["Senses"];
+    document.getElementById('defense').innerHTML = raceData[c.race]["Defensive Traits"].replace('Â','');
+    document.getElementById('offense').innerHTML = raceData[c.race]["Offensive Traits"].replace('Â','');
+    document.getElementById('skillBonus').innerHTML = raceData[c.race]["Skill Bonuses"].replace('Â','');
+    document.getElementById('special').innerHTML = raceData[c.race]["Spell-Like (Sp) or Supernatural (Su) Abilities"].replace('Â','');
+    c.hp = classData[c.class].HitDie;
+    document.getElementById('hp').innerHTML = c.hp;
+    var feats = 1;
+    if (c.class == 'Fighter'){
+        feats++;
+    }
+    if (c.race == 'Human'){
+        feats++;
+    }
+    document.getElementById('feats').innerHTML = feats;
+    for (i in abilities){
+        document.getElementById(i+'Race').value = raceData[c.race][i];
+        if (raceData[c.race].any > 0){
+            document.getElementById(i+'Race').removeAttribute('disabled');
+        } else {
+            document.getElementById(i+'Race').setAttribute('disabled','disabled');
+        }
+    }
+    if (raceData[c.race].any == 0){
+        document.getElementById('rbWrapper').setAttribute('hidden','hidden');
+    } else {
+        document.getElementById('rbWrapper').removeAttribute('hidden');
+    }
+    updateAbilities();
+}
+
 function store(key){
     c[key] = document.getElementById(key).value;
+    updateType();
 }
 
 // load data
 function onload(){
+    // select boxes
     var i;
     for (i in raceData){
         var o = document.createElement('option');
@@ -122,6 +185,75 @@ function onload(){
         o.innerHTML = i;
         document.getElementById('class').appendChild(o);
     }
+    // ability table
+    document.getElementById('abilityPoints').innerHTML = startingAbilityPoints;
+    for (i in abilities){
+        var row = document.createElement('tr');
+        var ability = document.createElement('td');
+        ability.innerHTML = abilities[i].name;
+        row.appendChild(ability);
+        var points = document.createElement('td');
+        var input = document.createElement('input');
+        input.type = 'number';
+        input.max = 18;
+        input.min = 7;
+        input.value = 10;
+        input.id = i+"Points";
+        input.setAttribute("oninput", "updateAbilities()");
+        points.appendChild(input);
+        row.appendChild(points);
+        var cost = document.createElement('td');
+        cost.id = i+"Cost"
+        row.appendChild(cost);
+        var racetd = document.createElement('td');
+        var race = document.createElement('input');
+        race.id = i+"Race";
+        race.setAttribute('type','number');
+        race.min = 0;
+        race.setAttribute('oninput','updateAbilities()')
+        row.appendChild(race);
+        var score = document.createElement('td');
+        score.id = i+"Score";
+        row.appendChild(score);
+        var mod = document.createElement('td');
+        mod.id = i+"Mod";
+        row.appendChild(mod);
+        document.getElementById('abilityTable').appendChild(row);
+    }
+    // skill table
+    for (i in skillData){
+        addSkill(i);
+    }
+    updateType();
+}
+
+function addSkill(i){
+    var row = document.createElement('tr');
+    var skill = document.createElement('td');
+    skill.innerHTML = i;
+    skill.id = i+'Skill'
+    row.appendChild(skill);
+    var ranktd = document.createElement('td');
+    var rank = document.createElement('input');
+    rank.value = 0;
+    rank.min = 0;
+    rank.max = c.level;
+    rank.setAttribute('type','number');
+    rank.id = i+'Rank';
+    rank.setAttribute('oninput','updateSkills()')
+    ranktd.appendChild(rank);
+    row.appendChild(ranktd);
+    var classB = document.createElement('td');
+    classB.id = i+'Class';
+    classB.innerHTML = 0;
+    row.appendChild(classB);
+    var ab = document.createElement('td');
+    ab.id = i+'Ability';
+    row.appendChild(ab);
+    var total = document.createElement('td');
+    total.id = i+'Total'
+    row.appendChild(total);
+    document.getElementById('skillTable').appendChild(row);
 }
 
 function rollForAge(){
@@ -129,7 +261,8 @@ function rollForAge(){
     var baseAge = raceData[c.race].BaseAge;
     var ageRoll = raceData[c.race][ageCat];
     var age = baseAge + diceText(ageRoll);
-    document.getElementById('age').value = age;
+    document.getElementById('age').innerHTML = age;
+    c.age = age;
 }
 
 function dice(q,d){
@@ -150,6 +283,94 @@ function diceText (t){
     };
     return result;
 };
+
+function rollForHeight(){
+    var base;
+    var modRoll;
+    if (c.sex == "Male"){
+        base = raceData[c.race].mHeight;
+        modRoll = raceData[c.race].mHeightMod;
+    } else {
+        base = raceData[c.race].fHeight;
+        modRoll = raceData[c.race].fHeightMod;
+    }
+    var height = base + diceText(modRoll);
+    var pretty = Math.floor(height/12) + "' " + height%12 +'"';
+    document.getElementById('height').innerHTML = pretty;
+    c.height = height;
+}
+
+function rollForWeight(){
+    var base;
+    var modRoll;
+    if (c.sex == "Male"){
+        base = raceData[c.race].mWeight;
+        modRoll = raceData[c.race].mWeightMod;
+    } else {
+        base = raceData[c.race].fWeight;
+        modRoll = raceData[c.race].fWeightMod;
+    }
+    var weight = base + diceText(modRoll);
+    var pretty = weight + " lbs."
+    document.getElementById('weight').innerHTML = pretty;
+    c.weight = weight;
+}
+
+function rollForWealth(){
+    var toRoll = classData[c.class].StartingWealth;
+    var wealth = dice(toRoll,6)*10;
+    document.getElementById('wealth').innerHTML = wealth + " gp";
+    c.wealth = wealth * 100;
+}
+
+function updateAbilities(){
+    var totalCost = 0;
+    var totalRace = 0;
+    for (i in abilities){
+        var cost = abilityCost[document.getElementById(i+'Points').value];
+        document.getElementById(i+'Cost').innerHTML = cost;
+        totalCost += cost;
+        var race = Number(document.getElementById(i+'Race').value);
+        totalRace += race;
+        c[i+'Score'] = Number(document.getElementById(i+'Points').value) + race;
+        document.getElementById(i+'Score').innerHTML = c[i+'Score'];
+        c[i+'Mod'] = Math.floor((c[i+'Score']-10)/2);
+        document.getElementById(i+'Mod').innerHTML = c[i+'Mod'];
+    }
+    document.getElementById('raceBonus').innerHTML = raceData[c.race].any - totalRace;
+    document.getElementById('abilityPoints').innerHTML = startingAbilityPoints - totalCost;
+    c.ranks = classData[c.class].RanksLevel + c.intMod;
+    if (document.getElementById('fcb').value == "+1 HP"){c.hp++}else{c.ranks++};
+    updateSkills();
+    return;
+}
+
+function updateSkills(){
+    var totalCost = 0;
+    for (i in skillData){
+        var classB = 0;
+        c.skills[i] = Number(document.getElementById(i+'Rank').value);
+        if (classData[c.class].skills[i] == 1){
+            document.getElementById(i+'Skill').setAttribute('style','font-weight: bold; background-color: #ddedff');
+            if(c.skills[i] > 0){
+                classB = 3;
+            } else {
+                classB = 0;
+            }
+        } else {
+            document.getElementById(i+'Skill').setAttribute('style','font-weight: normal; background-color: white;');
+            classB = 0;
+        }
+        document.getElementById(i+'Class').innerHTML = classB;
+        var ab = c[skillData[i].ability+'Mod'];
+        document.getElementById(i+'Ability').innerHTML = ab;
+        var total = ab + classB + c.skills[i];
+        document.getElementById(i+'Total').innerHTML = total;
+        totalCost += c.skills[i];
+    }
+    document.getElementById('skillPoints').innerHTML = c.ranks - totalCost;
+    return;
+}
 </script>
 </body>
 </html>
