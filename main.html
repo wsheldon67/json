@@ -91,9 +91,10 @@ th,td{
 </div>
 <div class='panel'>
     <h2>Feats: <span id='feats'></span></h2>
-    <div class='row'><input list='featList' id='feat'><button onclick='addFeat()'>Add</button></div>
+    <div class='row'><input list='featList' id='feat' oninput='updateFeats()'><button onclick='addFeat()'>Add</button></div>
     <datalist id='featList'></datalist>
-    
+    <div class='row'>Description: <span id='featDescription'></span></div>
+    <div class='row'>Benefits: <span id='featBenefit'></span></div>
 </div>
 <script>
 var c = {
@@ -225,6 +226,7 @@ function onload(){
         addSkill(i);
     }
     updateType();
+    loadFeats();
 }
 
 function addSkill(i){
@@ -370,6 +372,20 @@ function updateSkills(){
     }
     document.getElementById('skillPoints').innerHTML = c.ranks - totalCost;
     return;
+}
+
+function loadFeats(){
+    for (i in featData){
+        var o = document.createElement('option');
+        o.innerHTML = featData[i].name;
+        o.value = i;
+        document.getElementById('featList').appendChild(o);
+    }
+}
+
+function updateFeats(){
+    var featN = document.getElementById('feat').value;
+    document.getElementById('featDescription').innerHTML = featData[featN].description;
 }
 </script>
 </body>
