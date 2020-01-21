@@ -1,56 +1,13 @@
 <html>
 <head>
 <script src='data.js'></script>
+<script src='items.js'></script>
+<link rel="stylesheet" type="text/css" href="style.css">
 <style>
-*{
-    font-family: sans-serif;
-}
-.panel {
-    display: flex;
-    flex-direction: column;
-}
-.row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-input[type="number"]{
-    width: 60px
-}
-input[type="text"]{
-    width: 140px;
-}
-h2{
-    background-color: lightgreen;
-    font-size: 1em;
-    text-align: center;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    margin-top: 2px;
-    margin-bottom: 2px;
-}
-h3{
-    background-color: lavender;
-    text-align: center;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    margin-top: 0px;
-    margin-bottom: 1px;
-    font-size: 1em;
-}
-body{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-th,td{
-    text-align: center;
-}
+
 </style>
 </head>
-<body>
+<body onload='onload()'>
 <div class='panel' style='width: 160px'>
     <input class='row' type="file" id='cFile'>
     <h2>Panels</h2>
@@ -87,7 +44,17 @@ th,td{
 
 </div>
 <div class='panel' id='inventory'>
-
+    <h2>Store</h2>
+    <div class='row'>Category: <select id='itemCat' oninput='updateItemSubCat()'></select></div>
+    <div class='row'>Sub: <select id='itemSubCat' oninput='updateItems()'></select></div>
+    <div class='row'><input type='number' value='1' min='1' id='itemQuantity'><input list='itemList' id='selectedItem' oninput='updateItem()'></div>
+    <datalist id='itemList'></datalist>
+    <div class='row'>Location: <input list='itemLocations' id='itemLocation' value='Inventory'></div>
+    <datalist id='itemLocations'></datalist>
+    <div class='row'><input type='text' id='customAttribute'><button onclick="addItemAttribute()">Add Attribute</button></div>
+    <div id='itemDisplay'></div>
+    <button onclick='addItem()'>Add</button>
+    <div id='inventoryDisplay'></div>
 </div>
 <div class='panel' id='notes'>
 
@@ -96,7 +63,7 @@ th,td{
     <h2 id='name'></h2>
 </div>
 <script>
-
+var itemObject = {};
 // handy functions
 function dice(q,d){
     var result = 0;
@@ -105,7 +72,6 @@ function dice(q,d){
     };
     return result;
 };
-
 function diceText (t){
     var ar = t.split("d");
     var q = ar[0];
@@ -116,12 +82,10 @@ function diceText (t){
     };
     return result;
 };
-
 function removeElement(elementID){
     var element = document.getElementById(elementID);
     element.parentNode.removeChild(element);
 };
-
 function randBetween(l,h){
     return Math.floor(Math.random()*(h+1)+l);
 }
@@ -146,11 +110,24 @@ function downloadC(){
     dElement.setAttribute("download", c.name+".json");
 }
 
+// load page
+function onload(){
+    // add item categories
+    for (i in itemData){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('itemCat').appendChild(o);
+    }
+    updateItemSubCat();
+}
+
 // post character to page
 function postC(){
     addSkills();
     addOtherRolls();
     addInfo();
+    displayInventory();
+    console.log(itemObject)
 }
 function addSkills(){
     for (i in c.skills){
@@ -237,6 +214,119 @@ function saveRoll(save){
     document.getElementById(save+'Save').innerHTML = roll + totalMod;
     document.getElementById(save+'Save').title = 'd20: '+roll;
 }
+
+// Inventory
+function updateItemSubCat(){
+    var subCat = document.getElementById('itemSubCat');
+    while (subCat.hasChildNodes()){
+        subCat.removeChild(subCat.firstChild);
+    }
+    for (i in itemData[document.getElementById('itemCat').value]){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('itemSubCat').appendChild(o);
+    }
+    updateItems();
+}
+function updateItems(){
+    var itemList = document.getElementById('itemList');
+    while (itemList.hasChildNodes()){
+        itemList.removeChild(itemList.firstChild);
+    }
+    var subCat = itemData[document.getElementById('itemCat').value][document.getElementById('itemSubCat').value];
+    for (i in subCat){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('itemList').appendChild(o);
+    }
+}
+function updateItem(){
+    var cat = document.getElementById('itemCat').value;
+    var subCat = document.getElementById('itemSubCat').value;
+    var itemName = document.getElementById('selectedItem').value;
+    var itemLocation = document.getElementById('itemLocation').value;
+    var itemQuant = Number(document.getElementById('itemQuantity').value);
+    itemObject = itemData[cat][subCat][itemName];
+    document.getElementById('itemDisplay').innerHTML = '';
+    for (i in itemObject){
+        var row = document.createElement('div');
+        row.innerHTML = i+": ";
+        row.setAttribute('style','display: flex; justify-content: space-between');
+        var value = document.createElement('textarea');
+        value.rows = "1";
+        value.value = itemObject[i];
+        value.id = i+'Item'
+        value.setAttribute('oninput','updateItemInfo()')
+        row.appendChild(value);
+        document.getElementById('itemDisplay').appendChild(row);
+    }
+}
+function addItemAttribute(){
+    var row = document.createElement('div');
+    var key = document.getElementById('customAttribute').value;
+    row.innerHTML = key + ": ";
+    row.setAttribute('style','display: flex; justify-content: space-between');
+    var value = document.createElement('textarea');
+    value.rows = '1';
+    value.id = key+'Item'
+    value.setAttribute('oninput','updateItemInfo()');
+    row.appendChild(value);
+    document.getElementById('itemDisplay').appendChild(row);
+    if (typeof(itemObject) == "undefined"){itemObject = {}};
+    itemObject[key] = '';
+}
+function updateItemInfo(){
+    for (i in itemObject){
+        if (isNaN(Number(document.getElementById(i+'Item').value))){itemObject[i] = document.getElementById(i+'Item').value}
+        else {itemObject[i] = Number(document.getElementById(i+'Item').value)};
+    }
+}
+function addItem(){
+    // add to c.items
+    var cat = document.getElementById('itemCat').value;
+    var subCat = document.getElementById('itemSubCat').value;
+    var itemName = document.getElementById('selectedItem').value;
+    var itemLocation = document.getElementById('itemLocation').value;
+    var itemQuant = Number(document.getElementById('itemQuantity').value);
+    if (typeof(c.items[itemLocation]) == "undefined"){c.items[itemLocation] = {}};
+    if (typeof(c.items[itemLocation][cat]) == "undefined"){c.items[itemLocation][cat] = {}};
+    itemObject.subCat = subCat;
+    itemObject.name = itemName;
+    itemObject.quantity = itemQuant;
+    if (typeof(c.items[itemLocation][cat][itemName]) == "undefined"){
+        c.items[itemLocation][cat][itemName] = itemObject;
+    } else {
+        c.items[itemLocation][cat][itemName].quantity += itemQuant;
+    }
+    document.getElementById('selectedItem').value = '';
+    displayInventory();
+}
+function displayInventory(){
+    document.getElementById('itemLocations').innerHTML = '';
+    document.getElementById('inventoryDisplay').innerHTML = '';
+    for (i in c.items){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('itemLocations').appendChild(o);
+        var header = document.createElement('h2');
+        header.innerHTML = i;
+        //header.id = i + 'Header';
+        document.getElementById('inventoryDisplay').appendChild(header);
+        for (k in c.items[i]){
+            var cat = document.createElement('h3');
+            cat.innerHTML = k;
+            document.getElementById('inventoryDisplay').appendChild(cat);
+            for (j in c.items[i][k]){
+                var item = document.createElement('div');
+                var nitemObject = c.items[i][k][j];
+                item.innerHTML = nitemObject.quantity +" - "+ nitemObject.name;
+                item.title = nitemObject.description;
+                document.getElementById('inventoryDisplay').appendChild(item);
+            }
+        }
+    }
+}
+
 </script>
 </body>
 </html>

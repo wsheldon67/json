@@ -1,54 +1,11 @@
 <html>
 <head>
+<link rel="stylesheet" type="text/css" href="style.css">
 <style>
-*{
-    font-family: sans-serif;
-}
-.panel {
-    display: flex;
-    flex-direction: column;
-}
-.row {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-input[type="number"]{
-    width: 60px
-}
-input[type="text"]{
-    width: 140px;
-}
-h2{
-    background-color: lightgreen;
-    font-size: 1em;
-    text-align: center;
-    padding-top: 5px;
-    padding-bottom: 5px;
-    margin-top: 2px;
-    margin-bottom: 2px;
-}
-h3{
-    background-color: lavender;
-    text-align: center;
-    padding-top: 2px;
-    padding-bottom: 2px;
-    margin-top: 0px;
-    margin-bottom: 1px;
-    font-size: 1em;
-}
-body{
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-th,td{
-    text-align: center;
-}
+
 </style>
 <script src='data.js'></script>
+<script src='feats.js'></script>
 </head>
 <body onload='onload()'>
 <div class='panel' style='width: 200px'>
@@ -146,7 +103,8 @@ var c = {
     "skills":{},
     "feats":{},
     "featsTaken":0,
-    "other":{}
+    "other":{},
+    "items":{'Inventory':{}}
 }
 // store uploaded character in variable c
 const parsed = jsonText => JSON.parse(jsonText);
