@@ -1,5 +1,6 @@
 <html>
 <head>
+<script src='data.js'></script>
 <style>
 *{
     font-family: sans-serif;
@@ -48,67 +49,55 @@ th,td{
     text-align: center;
 }
 </style>
-<script src='data.js'></script>
 </head>
-<body onload='onload()'>
-<div class='panel' style='width: 200px'>
+<body>
+<div class='panel' style='width: 160px'>
     <input class='row' type="file" id='cFile'>
-    <h2>General</h2>
-    <div class='row'>Name: <input type='text' id='name' oninput="store('name')"></div>
-    <div class='row'>Class: <select id='class' oninput="store('class')"></select></div>
-    <div class='row'>Race: <select id='race' oninput="store('race')"></select></div>
-    <div class='row'>Sex: <select id='gender' oninput="store('sex')"><option>Male</option><option>Female</option></select></div>
-    <div class='row'>Favored Class Bonus: <select id='fcb' oninput="updateType()"><option>+1 HP</option><option>+1 Skill</option></select></div>
-    <h2>Physical</h2>
-    <div class='row'>Size: <div id='size'></div></div>
-    <div class='row'>Speed: <div id='speed'></div></div>
-    <div class='row'>Hit Points: <div id='hp'></div></div>
-    <div class='row'><div>Age: <button onclick='rollForAge()'>Roll</button></div><div id='age'></div></div>
-    <div class='row'><div>Height: <button onclick='rollForHeight()'>Roll</button></div><div id='height'></div></div>
-    <div class='row'><div>Weight: <button onclick='rollForWeight()'>Roll</button></div><div id='weight'></div></div>
-    <h2>Combat</h2>
-    <div class='row'>Base Attack: <div id='bab'></div></div>
-    <div class='row'>Fortitude Save: <div id='fortSave'></div></div>
-    <div class='row'>Reflex Save: <div id='refSave'></div></div>
-    <div class='row'>Will Save: <div id='willSave'></div></div>
-    <h2>Other</h2>
-    <div class='row'><div>Wealth: <button onclick='rollForWealth()'>Roll</button></div><div id='wealth'></div></div>
-    <div class='row'>Languages: <div id='lang'></div></div>
-    <div class='row'>Senses: <div id='sense'></div></div>
-    <div class='row'>Defense: <div id='defense'></div></div>
-    <div class='row'>Offense: <div id='offense'></div></div>
-    <div class='row'>Skills: <div id='skillBonus'></div></div>
-    <div class='row'>Special: <div id='special'></div></div>
+    <h2>Panels</h2>
+    <div class='row'><button onclick='show("skills")'>Skills</button></div>
+    <div class='row'><button onclick='show("otherRolls")'>Other Rolls</button></div>
+    <div class='row'><button onclick='show("combat")'>Combat</button></div>
+    <div class='row'><button onclick='show("inventory")'>Inventory</button></div>
+    <div class='row'><button onclick='show("notes")'>Notes</button></div>
+    <div class='row'><button onclick='show("info")'>Character Info</button></div>
+    <h2>Dice Roller</h2>
+    <div class='row'><input type='number' min='0' value='1' id='diceQ'>d<input type='number' min='0' value='20' id='diceD'></div>
+    <button onclick='diceRoller()'>Roll</button>
+    <div id='diceResult' style='text-align: center; font-size: 2em'></div>
+    <h2>Save</h2>
     <div class='row'><button onclick='downloadC()'>Save Character</button><a id="download">Download</a></div>
 </div>
-<div class='panel' style='width: 350px'>
-    <h2>Abilities: <span id='abilityPoints'></span> Points</h2>
-    <h3 id='rbWrapper'>Race Bonus: <span id='raceBonus'></span></h3>
-    <table id='abilityTable'>
-        <tr><th>Ability</th><th>Points</th><th>Cost</th><th>Race</th><th>Score</th><th>Mod</th></tr>
-    </table>
-    <h2>Other Rolls</h2>
-    <div class='row'><div><select id='otherRoll'></select><button onclick='rollForOther()'>Roll</button></div><div id='otherResult'></div></div>
-    <div id='otherTotal'></div>
-</div>
-<div class='panel'>
-    <h2>Skills: <span id='skillPoints'></span> Ranks</h2>
+<div class='panel' id='skills'>
+    <h2>Skill Checks</h2>
     <table id='skillTable'>
-        <tr><th>Skill</th><th>Ranks</th><th>Class Bonus</th><th>Ability Mod</th><th>Total</th></tr>
+        <tr><th>Skill</th><th>Mod</th><th>Roll</th><th>Result</th></tr>
     </table>
 </div>
-<div class='panel'>
-    <h2>Feats: <span id='feats'></span></h2>
-    <div class='row'><input list='featList' id='feat' oninput='updateFeats()'><button onclick='addFeat()'>Add</button></div>
-    <datalist id='featList'></datalist>
-    <div class='row'>Description: <div id='featDescription' style='width: 160px'></div></div>
-    <div class='row'>Benefits: <div id='featBenefit' style='width: 160px'></div></div>
-    <h2>Choosen Feats</h2>
-    <div id='choosenFeats' style='display: flex; flex-direction: column;'></div>
+<div class='panel' id='otherRolls'>
+    <h2>Ability Rolls</h2>
+    <table id='abilityRolls'></table>
+    <h2>Saving Throws</h2>
+    <table>
+        <tr><td>Fortitude</td><td><button onclick='saveRoll("fort")'>Roll</button></td><td id='fortSave'></td></tr>
+        <tr><td>Reflex</td><td><button onclick='saveRoll("ref")'>Roll</button></td><td id='refSave'></td></tr>
+        <tr><td>Will</td><td><button onclick='saveRoll("will")'>Roll</button></td><td id='willSave'></td></tr>
+    </table>
+</div>
+<div class='panel' id='combat'>
+
+</div>
+<div class='panel' id='inventory'>
+
+</div>
+<div class='panel' id='notes'>
+
+</div>
+<div class='panel' id='info'>
+    <h2 id='name'></h2>
 </div>
 <script>
-// handy functions
 
+// handy functions
 function dice(q,d){
     var result = 0;
     for (i=0; i<q; i++){
@@ -136,17 +125,7 @@ function removeElement(elementID){
 function randBetween(l,h){
     return Math.floor(Math.random()*(h+1)+l);
 }
-// character object
-var c = {
-    "class":"Barbarian",
-    "race":"Dwarf",
-    "sex":"Male",
-    "level":1,
-    "skills":{},
-    "feats":{},
-    "featsTaken":0,
-    "other":{}
-}
+
 // store uploaded character in variable c
 const parsed = jsonText => JSON.parse(jsonText);
 const fr = new FileReader();
@@ -169,343 +148,95 @@ function downloadC(){
 
 // post character to page
 function postC(){
-    console.log('not done yet');
+    addSkills();
+    addOtherRolls();
+    addInfo();
 }
-
-function store(key){
-    c[key] = document.getElementById(key).value;
-    updateType();
+function addSkills(){
+    for (i in c.skills){
+        var row = document.createElement('tr');
+        var skill = document.createElement('td');
+        skill.innerHTML = i;
+        row.appendChild(skill);
+        var mod = document.createElement('td');
+        var modTotal = 0;
+        for (k in c.skills[i]){
+            modTotal += c.skills[i][k];
+        }
+        mod.innerHTML = modTotal;
+        row.appendChild(mod);
+        var roll = document.createElement('button');
+        var rolltd = document.createElement('td');
+        roll.innerHTML = 'Roll';
+        roll.setAttribute('onclick','skillRoll("'+i+'")');
+        rolltd.appendChild(roll);
+        row.appendChild(rolltd);
+        var result = document.createElement('td');
+        result.id = i + 'Result';
+        row.appendChild(result);
+        document.getElementById('skillTable').appendChild(row);
+    }
 }
-
-// initial load > type > ability > skills
-function onload(){
-    // select boxes
-    var i;
-    for (i in raceData){
-        var o = document.createElement('option');
-        o.innerHTML = i;
-        document.getElementById('race').appendChild(o);
-    }
-    for (i in classData){
-        var o = document.createElement('option');
-        o.innerHTML = i;
-        document.getElementById('class').appendChild(o);
-    }
-    // other options
-    for (i in otherRolls){
-        var o = document.createElement('option');
-        o.innerHTML = i;
-        document.getElementById('otherRoll').appendChild(o);
-    }
-    // ability table
-    document.getElementById('abilityPoints').innerHTML = startingAbilityPoints;
+function addOtherRolls(){
     for (i in abilities){
         var row = document.createElement('tr');
-        var ability = document.createElement('td');
-        ability.innerHTML = abilities[i].name;
-        row.appendChild(ability);
-        var points = document.createElement('td');
-        var input = document.createElement('input');
-        input.type = 'number';
-        input.max = 18;
-        input.min = 7;
-        input.value = 10;
-        input.id = i+"Points";
-        input.setAttribute("oninput", "updateAbilities()");
-        points.appendChild(input);
-        row.appendChild(points);
-        var cost = document.createElement('td');
-        cost.id = i+"Cost"
-        row.appendChild(cost);
-        var racetd = document.createElement('td');
-        var race = document.createElement('input');
-        race.id = i+"Race";
-        race.setAttribute('type','number');
-        race.min = 0;
-        race.setAttribute('oninput','updateAbilities()')
-        row.appendChild(race);
-        var score = document.createElement('td');
-        score.id = i+"Score";
-        row.appendChild(score);
-        var mod = document.createElement('td');
-        mod.id = i+"Mod";
-        row.appendChild(mod);
-        document.getElementById('abilityTable').appendChild(row);
+        var label = document.createElement('td');
+        label.innerHTML = i;
+        label.title = 'Mod: '+c[i+'Mod'];
+        row.appendChild(label);
+        var buttontd = document.createElement('td');
+        var button = document.createElement('button');
+        button.innerHTML = 'Roll';
+        button.setAttribute('onclick','abilityRoll("'+i+'")');
+        buttontd.appendChild(button);
+        row.appendChild(buttontd);
+        var result = document.createElement('td');
+        result.id = i+'Result';
+        row.appendChild(result);
+        document.getElementById('abilityRolls').appendChild(row);
     }
-    // skill table
-    for (i in skillData){
-        addSkill(i);
-    }
-    updateType();
-    loadFeats();
+}
+function addInfo(){
+    document.getElementById('name').innerHTML = c.name;
 }
 
-function updateType(){
-    c.size = raceData[c.race].Size
-    c.sizeMod = sizeData[c.size].Mod;
-    c.dimensions = sizeData[c.size].Dimensions;
-    document.getElementById('size').innerHTML = c.size;
-    c.speed = raceData[c.race].Speed
-    document.getElementById('speed').innerHTML = c.speed;
-    c.lang = raceData[c.race]["Starting Languages"].split(", ")
-    document.getElementById('lang').innerHTML = raceData[c.race]["Starting Languages"];
-    document.getElementById('sense').innerHTML = raceData[c.race]["Senses"];
-    document.getElementById('defense').innerHTML = raceData[c.race]["Defensive Traits"].replace('Â','');
-    document.getElementById('offense').innerHTML = raceData[c.race]["Offensive Traits"].replace('Â','');
-    document.getElementById('skillBonus').innerHTML = raceData[c.race]["Skill Bonuses"].replace('Â','');
-    document.getElementById('special').innerHTML = raceData[c.race]["Spell-Like (Sp) or Supernatural (Su) Abilities"].replace('Â','');
-    c.hp = classData[c.class].HitDie;
-    document.getElementById('hp').innerHTML = c.hp;
-    // how many feats do get
-    c.totalFeats = 1;
-    if (c.class == 'Fighter'){
-        c.totalFeats++;
-    }
-    if (c.race == 'Human'){
-        c.totalFeats++;
-    }
-    document.getElementById('feats').innerHTML = c.totalFeats - c.featsTaken;
-    // custom race points (bonus to 'any'; ie humans)
-    for (i in abilities){
-        document.getElementById(i+'Race').value = raceData[c.race][i];
-        if (raceData[c.race].any > 0){
-            document.getElementById(i+'Race').removeAttribute('disabled');
-        } else {
-            document.getElementById(i+'Race').setAttribute('disabled','disabled');
-        }
-    }
-    if (raceData[c.race].any == 0){
-        document.getElementById('rbWrapper').setAttribute('hidden','hidden');
+// show/hide sections
+function show(section){
+    var s = document.getElementById(section);
+    if (s.style.display == 'none'){
+        s.setAttribute('style','display: flex');
     } else {
-        document.getElementById('rbWrapper').removeAttribute('hidden');
+        s.setAttribute('style','display: none');
     }
-    //updating type changes ability race values
-    updateAbilities();
-}
-
-function updateAbilities(){
-    var totalCost = 0;
-    var totalRace = 0;
-    for (i in abilities){
-        var cost = abilityCost[document.getElementById(i+'Points').value];
-        document.getElementById(i+'Cost').innerHTML = cost;
-        totalCost += cost;
-        var race = Number(document.getElementById(i+'Race').value);
-        totalRace += race;
-        c[i+'Score'] = Number(document.getElementById(i+'Points').value) + race;
-        document.getElementById(i+'Score').innerHTML = c[i+'Score'];
-        c[i+'Mod'] = Math.floor((c[i+'Score']-10)/2);
-        document.getElementById(i+'Mod').innerHTML = c[i+'Mod'];
-    }
-    document.getElementById('raceBonus').innerHTML = raceData[c.race].any - totalRace;
-    document.getElementById('abilityPoints').innerHTML = startingAbilityPoints - totalCost;
-    c.ranks = classData[c.class].RanksLevel + c.intMod;
-    if (document.getElementById('fcb').value == "+1 HP"){c.hp++}else{c.ranks++};
-    var currentLevel = classData[c.class].level[1];
-    c.fortSave = currentLevel.fortSave + c.conMod;
-    document.getElementById('fortSave').innerHTML = c.fortSave;
-    c.refSave = currentLevel.refSave + c.dexMod;
-    document.getElementById('refSave').innerHTML = c.refSave;
-    c.willSave = currentLevel.willSave + c.wisMod;
-    document.getElementById('willSave').innerHTML = c.willSave;
-    c.bab = currentLevel.bab;
-    document.getElementById('bab').innerHTML = c.bab;
-    updateSkills();
-    return;
-}
-
-function updateSkills(){
-    var totalCost = 0;
-    for (i in skillData){
-        var classB = 0;
-        c.skills[i] = Number(document.getElementById(i+'Rank').value);
-        if (classData[c.class].skills[i] == 1){
-            document.getElementById(i+'Skill').setAttribute('style','font-weight: bold; background-color: #ddedff');
-            if(c.skills[i] > 0){
-                classB = 3;
-            } else {
-                classB = 0;
-            }
-        } else {
-            document.getElementById(i+'Skill').setAttribute('style','font-weight: normal; background-color: white;');
-            classB = 0;
-        }
-        document.getElementById(i+'Class').innerHTML = classB;
-        var ab = c[skillData[i].ability+'Mod'];
-        document.getElementById(i+'Ability').innerHTML = ab;
-        var total = ab + classB + c.skills[i];
-        document.getElementById(i+'Total').innerHTML = total;
-        totalCost += c.skills[i];
-    }
-    document.getElementById('skillPoints').innerHTML = c.ranks - totalCost;
-    return;
-}
-
-function addSkill(i){
-    var row = document.createElement('tr');
-    var skill = document.createElement('td');
-    skill.innerHTML = i;
-    skill.id = i+'Skill'
-    row.appendChild(skill);
-    var ranktd = document.createElement('td');
-    var rank = document.createElement('input');
-    rank.value = 0;
-    rank.min = 0;
-    rank.max = c.level;
-    rank.setAttribute('type','number');
-    rank.id = i+'Rank';
-    rank.setAttribute('oninput','updateSkills()')
-    ranktd.appendChild(rank);
-    row.appendChild(ranktd);
-    var classB = document.createElement('td');
-    classB.id = i+'Class';
-    classB.innerHTML = 0;
-    row.appendChild(classB);
-    var ab = document.createElement('td');
-    ab.id = i+'Ability';
-    row.appendChild(ab);
-    var total = document.createElement('td');
-    total.id = i+'Total'
-    row.appendChild(total);
-    document.getElementById('skillTable').appendChild(row);
 }
 
 // rolls
-function rollForAge(){
-    var ageCat = classData[c.class].AgeCategory;
-    var baseAge = raceData[c.race].BaseAge;
-    var ageRoll = raceData[c.race][ageCat];
-    var age = baseAge + diceText(ageRoll);
-    document.getElementById('age').innerHTML = age;
-    c.age = age;
-}
-
-function rollForHeight(){
-    var base;
-    var modRoll;
-    if (c.sex == "Male"){
-        base = raceData[c.race].mHeight;
-        modRoll = raceData[c.race].mHeightMod;
-    } else {
-        base = raceData[c.race].fHeight;
-        modRoll = raceData[c.race].fHeightMod;
+function skillRoll(skill){
+    var modTotal = 0;
+    for (k in c.skills[skill]){
+        modTotal += c.skills[skill][k];
     }
-    var height = base + diceText(modRoll);
-    var pretty = Math.floor(height/12) + "' " + height%12 +'"';
-    document.getElementById('height').innerHTML = pretty;
-    c.height = height;
+    var roll = dice(1,20)
+    document.getElementById(skill+'Result').innerHTML = roll + modTotal;
+    document.getElementById(skill+'Result').title = 'd20: ' + roll;
 }
-
-function rollForWeight(){
-    var base;
-    var modRoll;
-    if (c.sex == "Male"){
-        base = raceData[c.race].mWeight;
-        modRoll = raceData[c.race].mWeightMod;
-    } else {
-        base = raceData[c.race].fWeight;
-        modRoll = raceData[c.race].fWeightMod;
-    }
-    var weight = base + diceText(modRoll);
-    var pretty = weight + " lbs."
-    document.getElementById('weight').innerHTML = pretty;
-    c.weight = weight;
+function diceRoller(){
+    var q = Number(document.getElementById('diceQ').value);
+    var d = Number(document.getElementById('diceD').value);
+    document.getElementById('diceResult').innerHTML = dice(q,d);
 }
-
-function rollForWealth(){
-    var toRoll = classData[c.class].StartingWealth;
-    var wealth = dice(toRoll,6)*10;
-    document.getElementById('wealth').innerHTML = wealth + " gp";
-    c.wealth = wealth * 100;
+function abilityRoll(ability){
+    var roll = dice(1,20);
+    document.getElementById(ability+'Result').innerHTML = roll + c[ability+'Mod'];
+    document.getElementById(ability+'Result').title = 'd20: ' + roll;
 }
-
-var otherRolls = {
-    'Penis Size':function(){
-        c.other.penis = {};
-        var length = dice(2,c.dimensions*.75);
-        c.other.penis.length = length;
-        var girth = Math.round(dice(2,c.dimensions)*10/8)/10;
-        c.other.penis.girth = girth;
-        var showGrow = {1:'Shower',2:'Grower'};
-        var display = showGrow[dice(1,2)];
-        c.other.penis.display = display;
-        var pretty = length + '" x ' + girth + '" ' + display;
-        document.getElementById('otherResult').innerHTML = pretty;
-    },'Breast Size':function(){
-        c.other.breast = {};
-        var cupNumber = dice(2,5-c.sizeMod/2);
-        c.other.breast.cup = otherData.cupChart[cupNumber];
-        c.other.breast.band = cupNumber * 2 + 16 + dice(2,6);
-        var symmTable = ['Left','Symmetrical','Symmetrical','Right'];
-        var symmType = symmTable[randBetween(0,3)];
-        var symmAmount = Math.abs(dice(3,30)-46);
-        if (symmType == 'Symmetrical'){
-            c.other.breast.symmetry = 'Symmetrical';
-        } else {
-            c.other.breast.symmetry = symmType + " is " + symmAmount +"% larger";
-        }
-        var pretty = c.other.breast.band + c.other.breast.cup + ", " + c.other.breast.symmetry;
-        document.getElementById('otherResult').innerHTML = pretty;
-    },'Drunk Type':function(){
-        c.other.drunk = otherData.drunkTypes[dice(1,otherData.drunkTypes.length)-1]
-        document.getElementById('otherResult').innerHTML = c.other.drunk;
-    }, 'Accent':function(){
-        c.other.voice = {};
-        c.other.voice.accent = otherData.voice.accent[randBetween(0,otherData.voice.accent.length)];
-        c.other.voice.pitch = otherData.voice.pitch[randBetween(0,otherData.voice.pitch.length)];
-        var pretty = c.other.voice.pitch + '-pitched ' + c.other.voice.accent;
-        document.getElementById('otherResult').innerHTML = pretty;
-    }
+function saveRoll(save){
+    var roll = dice(1,20);
+    var saveMods = {'fort':c.conMod,'ref':c.dexMod,'will':c.wisMod}
+    var totalMod = saveMods[save] + c[save+'Save'];
+    document.getElementById(save+'Save').innerHTML = roll + totalMod;
+    document.getElementById(save+'Save').title = 'd20: '+roll;
 }
-
-function rollForOther(){
-    otherRolls[document.getElementById('otherRoll').value]();
-    document.getElementById('otherTotal').innerHTML = JSON.stringify(c.other);
-}
-
-// feats
-function loadFeats(){
-    for (i in featData){
-        var o = document.createElement('option');
-        o.innerHTML = featData[i].name;
-        o.value = i;
-        document.getElementById('featList').appendChild(o);
-    }
-}
-
-function updateFeats(){
-    var featN = document.getElementById('feat').value;
-    document.getElementById('featDescription').innerHTML = featData[featN].description;
-    document.getElementById('featBenefit').innerHTML = featData[featN].benefit;
-}
-
-function addFeat(){
-    var featNumber = document.getElementById('feat').value;
-    c.feats[featNumber] = featData[featNumber];
-    c.featsTaken = 0;
-    for (i in c.feats){
-        c.featsTaken++;
-    }
-    document.getElementById('feats').innerHTML = c.totalFeats - c.featsTaken;
-    document.getElementById('feat').value = '';
-    var row = document.createElement('div');
-    row.innerHTML = c.feats[featNumber].name;
-    row.title = c.feats[featNumber].benefit;
-    row.id = featNumber + 'Feat'
-    var remove = document.createElement('button');
-    remove.setAttribute('onclick','removeFeat('+featNumber+')')
-    remove.innerHTML = 'X'
-    remove.id = featNumber + 'Remove'
-    row.appendChild(remove);
-    document.getElementById('choosenFeats').appendChild(row);
-}
-
-function removeFeat(id){
-    removeElement(id+'Remove');
-    removeElement(id+'Feat');
-    delete c.feats[id];
-}
-
 </script>
 </body>
 </html>
