@@ -6,6 +6,7 @@
 </style>
 <script src='data.js'></script>
 <script src='feats.js'></script>
+<script src='items.js'></script>
 </head>
 <body onload='onload()'>
 <div class='panel' style='width: 200px'>
@@ -104,7 +105,7 @@ var c = {
     "feats":{},
     "featsTaken":0,
     "other":{},
-    "items":{'Inventory':{}}
+    "items":{'Inventory':{'Weapons':{}}}
 }
 // store uploaded character in variable c
 const parsed = jsonText => JSON.parse(jsonText);
@@ -215,6 +216,16 @@ function updateType(){
     document.getElementById('special').innerHTML = raceData[c.race]["Spell-Like (Sp) or Supernatural (Su) Abilities"].replace('Â','');
     c.hp = classData[c.class].HitDie;
     document.getElementById('hp').innerHTML = c.hp;
+    // add natural attacks
+    if (typeof(raceData[c.race].naturalAttacks) == "undefined"){
+        c.items.Inventory.Weapons = {};
+    } else {
+        var naturalAttacks = raceData[c.race].naturalAttacks;
+        for (i of naturalAttacks){
+            var naturalAttackObject = itemData.Weapons.Natural[i]
+            c.items.Inventory.Weapons[i] = naturalAttackObject;
+        }
+    }
     // how many feats do get
     c.totalFeats = 1;
     if (c.class == 'Fighter'){

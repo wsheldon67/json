@@ -40,8 +40,63 @@
         <tr><td>Will</td><td><button onclick='saveRoll("will")'>Roll</button></td><td id='willSave'></td></tr>
     </table>
 </div>
-<div class='panel' id='combat'>
-
+<div class='section' id='combat' style='width: 250px'>
+    <div class='panel'>
+        <h2>Weapons</h2>
+        <h3>Main Hand</h3>
+        <select></select>
+        <h3>Off Hand</h3>
+        <select><option>None</option></select>
+        <h3>Mouth</h3>
+        <select><option>None</option></select>
+        <h3>Tail</h3>
+        <select><option>None</option></select>
+        <h3>Feet</h3>
+        <select><option>None</option></select>
+    </div>
+    <div class='panel'>
+        <h2>Standard Attack</h2>
+        <div class='row'>Attack: <button>Roll</button><div></div></div>
+        <div class='row'>Damage: <button>Roll</button><div></div></div>
+        <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        <h2>Full Round Attack</h2>
+        <div class='panel' id='primary2' style='display: none;'>
+            <h3>2nd Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='primary3' style='display: none;'>
+            <h3>3rd Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='primary4' style='display: none;'>
+            <h3>4th Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='secondary' style='display: none;'>
+            <h3>Secondary Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='natural1' style='display: none;'>
+            <h3>Natural Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='natural2' style='display: none;'>
+            <h3>Natural Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+    </div>
 </div>
 <div class='panel' id='inventory'>
     <h2>Store</h2>
@@ -127,7 +182,6 @@ function postC(){
     addOtherRolls();
     addInfo();
     displayInventory();
-    console.log(itemObject)
 }
 function addSkills(){
     for (i in c.skills){
