@@ -9,7 +9,39 @@ var otherData = {
         
     }
 }
-
+// handy functions
+function dice(q,d){
+    var result = 0;
+    for (i=0; i<q; i++){
+        result = result + Math.floor(Math.random() * d) + 1;
+    };
+    return result;
+};
+function diceText (t){
+    var ar = t.split("d");
+    var q = ar[0];
+    var d = ar[1];
+    var result = 0;
+    for (i=0; i<q; i++){
+        result = result + Math.floor(Math.random() * d) + 1;
+    };
+    return result;
+};
+function removeElement(elementID){
+    var element = document.getElementById(elementID);
+    element.parentNode.removeChild(element);
+};
+function randBetween(l,h){
+    return Math.floor(Math.random()*(h+1)+l);
+}
+function show(section){
+    var s = document.getElementById(section);
+    if (s.style.display == 'none'){
+        s.setAttribute('style','display: flex');
+    } else {
+        s.setAttribute('style','display: none');
+    }
+}
 // data
 var classData = {
     'Barbarian':{'Type':'Core','StartingWealth':3,'AvgStartingGold':105,'RanksLevel':4,'Player':1,'HitDie':12,'AgeCategory':'Intuitive',

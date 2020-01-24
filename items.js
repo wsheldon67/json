@@ -331,15 +331,18 @@ var itemData = {
             "Unarmed strike":{"price":0,"sDmg":"1d2","mDmg":"1d3","crit":2,"mincrit":20,"range":0,"weight":0,"B":1,"P":0,"S":0,"special":"nonlethal","source":"PZO1110","level":"Simple",},
 
         },'Natural':{
-            "Bite":{"dim":"1d2","tiny":"1d3","sDmg":"1d4","mDmg":"1d6","Large":"1d8","Huge":"2d6","Gargantuan":"2d8","Colossal":"4d6","B":1,"P":1,"S":1,"type":"Primary",},
-            "Claw":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":0,"S":1,"type":"Primary",},
-            "Gore":{"dim":"1d2","tiny":"1d3","sDmg":"1d4","mDmg":"1d6","Large":"1d8","Huge":"2d6","Gargantuan":"2d8","Colossal":"4d6","B":0,"P":1,"S":0,"type":"Primary",},
-            "Hoof, Tentacle, Wing":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":0,"S":0,"type":"Secondary",},
-            "Pincers, Tail Slap":{"dim":"1d2","tiny":"1d3","sDmg":"1d4","mDmg":"1d6","Large":"1d8","Huge":"2d6","Gargantuan":"2d8","Colossal":"4d6","B":1,"P":0,"S":0,"type":"Secondary",},
-            "Slam":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":0,"S":0,"type":"Primary",},
-            "Sting":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":0,"P":1,"S":0,"type":"Primary",},
-            "Talons":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":0,"P":0,"S":1,"type":"Primary",},
-            "Other":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":1,"S":1,"type":"Secondary",},
+            "Bite":{"dim":"1d2","tiny":"1d3","sDmg":"1d4","mDmg":"1d6","Large":"1d8","Huge":"2d6","Gargantuan":"2d8","Colossal":"4d6","B":1,"P":1,"S":1,"type":"Primary","hand":false,"crit":2,"mincrit":20,},
+            "Claw":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":0,"S":1,"type":"Primary","hand":true,"crit":2,"mincrit":20,},
+            "Gore":{"dim":"1d2","tiny":"1d3","sDmg":"1d4","mDmg":"1d6","Large":"1d8","Huge":"2d6","Gargantuan":"2d8","Colossal":"4d6","B":0,"P":1,"S":0,"type":"Primary","hand":false,"crit":2,"mincrit":20,},
+            "Tail Slap":{"dim":"1d2","tiny":"1d3","sDmg":"1d4","mDmg":"1d6","Large":"1d8","Huge":"2d6","Gargantuan":"2d8","Colossal":"4d6","B":1,"P":0,"S":0,"type":"Secondary","hand":false,"crit":2,"mincrit":20,},
+            "Tail Slap":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":0,"S":0,"type":"Primary","hand":false,"crit":2,"mincrit":20,},
+            "Slam":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":0,"P":1,"S":0,"type":"Primary","hand":false,"crit":2,"mincrit":20,},
+            "Sting":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":0,"P":0,"S":1,"type":"Primary","hand":true,"crit":2,"mincrit":20,},
+            "Talons":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":1,"S":1,"type":"Secondary","hand":false,"crit":2,"mincrit":20,},
+            "Other":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":0,"S":0,"type":"Secondary","hand":false,"crit":2,"mincrit":20,},
+            "Hoof":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":0,"S":0,"type":"Secondary","hand":true,"crit":2,"mincrit":20,},
+            "Tentacle":{"dim":"1d1","tiny":"1d2","sDmg":"1d3","mDmg":"1d4","Large":"1d6","Huge":"1d8","Gargantuan":"2d6","Colossal":"2d8","B":1,"P":0,"S":0,"type":"Secondary","hand":false,"crit":2,"mincrit":20,},
+            "Wing":{"dim":"1d2","tiny":"1d3","sDmg":"1d4","mDmg":"1d6","Large":"1d8","Huge":"2d6","Gargantuan":"2d8","Colossal":"4d6","B":1,"P":0,"S":0,"type":"Secondary","hand":true,"crit":2,"mincrit":20,},            
         }
     },'Ammunition':{
         'All':{
