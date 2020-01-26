@@ -74,9 +74,10 @@
     <div class='panel'>
         <h2>Standard Attack</h2>
         <div id='mainHand'></div>
-        <div class='row'>Attack: <button>Roll</button><div></div></div>
-        <div class='row'>Damage: <button>Roll</button><div></div></div>
-        <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        <div class='row'>Attack: <button onclick='attackRoll("mainHand")'>Roll</button><div id='mainHandAttackRoll'></div></div>
+        <div class='row'>Damage: <button onclick='dmgRoll("mainHand")'>Roll</button><div id='mainHandDmgRoll'></div></div>
+        <div class='row' id='mainHandNat'></div>
+        <div class='row' title='Re-roll attack to confirm crit.' style='display: none;' id='mainHandCritConfirm'>Crit! <button onclick = 'crit("mainHand")'>Confirm</button></div>
         <h2>Full Round Attack</h2>
         <div class='panel' id='primary2' style='display: none;'>
             <h3>2nd Attack</h3>
@@ -120,6 +121,16 @@
             <div class='row'>Damage: <button>Roll</button><div></div></div>
             <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
         </div>
+    </div>
+    <div class='panel'>
+        <h2>Initiative</h2>
+        <button onclick="document.getElementById('initiative').innerHTML = dice(1,20) + c.dexMod;">Roll</button>
+        <div id='initiative' style='text-align: center; font-size: 2em'></div>
+        <h2><span id='currentHP'></span>/<span id='maxHP'></span> HP</h2>
+        <table>
+            <tr><td>Regular</td><td><progress id='regularHpBar'></progress></td><td><input type='number'></td><td><button>Add</button></td></tr>
+            <tr><td>Non-Lethal</td><td><progress id='nlHpBar'></progress></td><td><input type='number'></td><td><button>Add</button></td></tr>
+        </table>
     </div>
 </div>
 <div class='panel' id='inventory'>
@@ -229,6 +240,10 @@ function addOtherRolls(){
 }
 function addInfo(){
     document.getElementById('name').innerHTML = c.name;
+    document.getElementById('regularHpBar').value = c.hp;
+    document.getElementById('regularHpBar').max = c.maxHP;
+    document.getElementById('nlHpBar').value = c.nlDmg;
+    document.getElementById('nlHpBar').max = c.maxHP;
 }
 
 // rolls
@@ -430,6 +445,69 @@ function displayPrimaryAttacks(){
         case 2: document.getElementById('primary3').setAttribute('style','display: flex;');
         case 1: document.getElementById('primary2').setAttribute('style','display: flex;');
     }
+}
+var attack = {}
+function attackRoll(body){
+    attack[body] = {};   
+    attack[body].bab = c.bab;
+    attack[body].size = -c.sizeMod;
+    if (currentWeapons[body].subCat == 'Ranged'){
+        attack[body].dex = c.dexMod;
+    } else {
+        attack[body].str = c.strMod;
+    }
+    attack[body].roll = dice(1,20);
+    // nat1/20
+    if (attack[body].roll == 1){
+        document.getElementById(body+'Nat').innerHTML = 'Nat 1!';
+        document.getElementById(body+'Nat').title = 'Automatic miss';
+        document.getElementById(body+'Nat').setAttribute('style','display: flex;');
+    } else if (attack[body].roll == 20){
+        document.getElementById(body+'Nat').innerHTML = 'Nat 20!';
+        document.getElementById(body+'Nat').title = 'Automatic hit';
+        document.getElementById(body+'Nat').setAttribute('style','display: flex;');
+    } else {
+        document.getElementById(body+'Nat').setAttribute('style','display: none;');
+    }
+    // crit
+    if (attack[body].roll >= currentWeapons[body].mincrit){
+        document.getElementById(body+'CritConfirm').setAttribute('style','display: flex;');
+    }
+    // addemup
+    var totalAttack = 0;
+    for (i in attack[body]){
+        totalAttack += attack[body][i];
+    }
+    // post
+    document.getElementById(body+'AttackRoll').innerHTML = totalAttack;
+    document.getElementById(body+'AttackRoll').title = JSON.stringify(attack[body]);
+}
+var dmg = {'mainHandMultipliers':{'crit':1}};
+function dmgRoll(body){
+    dmg[body] = {};
+    var sizeDmg = {'Small':'sDmg','Medium':'mDmg'};
+    dmg[body].weapon = diceText(currentWeapons[body][sizeDmg[c.size]]);
+    if (currentWeapons[body].subCat != 'Ranged'){
+        dmg[body].str = c.strMod;
+    }
+    // addemup
+    var totalDmg = 0;
+    for (i in dmg[body]){
+        totalDmg += dmg[body][i];
+    }
+    var totalMult = 0;
+    for (i in dmg[body+'Multipliers']){
+        totalMult += dmg[body+'Multipliers'][i];
+    }
+    totalDmg = totalDmg * totalMult;
+    document.getElementById(body+'DmgRoll').innerHTML = totalDmg;
+    document.getElementById(body+'DmgRoll').title = JSON.stringify(dmg[body]) + JSON.stringify(dmg[body+'Multipliers']);
+    // reset crit
+    dmg[body+'Multipliers'].crit = 1;
+}
+function crit(body){
+    dmg[body+'Multipliers'].crit = currentWeapons[body].crit;
+    document.getElementById(body+'CritConfirm').setAttribute('style','display: none;');
 }
 </script>
 </body>
