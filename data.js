@@ -36,12 +36,82 @@ function randBetween(l,h){
 }
 function show(section){
     var s = document.getElementById(section);
+    var b = document.getElementById(section+'Show');
     if (s.style.display == 'none'){
         s.setAttribute('style','display: flex');
+        b.removeAttribute('style');
     } else {
         s.setAttribute('style','display: none');
+        b.setAttribute('style','background-color:grey;');
     }
 }
+function copySkill(oSkill, copyName){
+    t.skills.rank[copyName] = t.skills.rank[oSkill];
+    skillData[copyName] = skillData[oSkill];
+    classData[c.class].skills[copyName] = classData[c.class].skills[oSkill];
+    var i = copyName;
+    var row = document.createElement('tr');
+    var skill = document.createElement('td');
+    skill.innerHTML = i;
+    row.appendChild(skill);
+    var mod = document.createElement('td');
+    mod.innerHTML = t.skills.total(i).total;
+    mod.title = JSON.stringify(t.skills.total(i));
+    mod.id = i + 'Mod';
+    row.appendChild(mod);
+    var roll = document.createElement('button');
+    var rolltd = document.createElement('td');
+    roll.innerHTML = 'Roll';
+    roll.id = i+'Roll';
+    if (skillData[i].untrained == 0 && c.skills.rank[i] == 0){roll.setAttribute('disabled','disabled')}
+    roll.setAttribute('onclick','skillRoll("'+i+'")');
+    rolltd.appendChild(roll);
+    row.appendChild(rolltd);
+    var result = document.createElement('td');
+    result.id = i + 'Result';
+    row.appendChild(result);
+    document.getElementById('skillTable').appendChild(row);
+}
+function copySave(oSave, copyName, prettyName){
+    t.saves.abilities[copyName] = t.saves.abilities[oSave];
+    t.saves.base[copyName] = t.saves.base[oSave];
+    t.saves.mods[copyName] = {};
+    var row = document.createElement('tr');
+    var label = document.createElement('td');
+    label.innerHTML = prettyName;
+    row.appendChild(label);
+    var buttontd = document.createElement('td');
+    var button = document.createElement('button');
+    button.innerHTML = 'Roll';
+    button.setAttribute('onclick','saveRoll("'+copyName+'")');
+    buttontd.appendChild(button);
+    row.appendChild(buttontd);
+    var result = document.createElement('td');
+    result.id = copyName+'Save';
+    row.appendChild(result);
+    document.getElementById('savingThrowContainer').appendChild(row);
+}
+function addCondition(name,func){
+    var row = document.createElement('div');
+    var check = document.createElement('input');
+    check.type = 'checkbox';
+    check.id = name+'Check';
+    check.setAttribute('oninput',func);
+    row.appendChild(check);
+    var label = document.createElement('span');
+    label.innerHTML = name;
+    row.appendChild(label);
+    document.getElementById('conditions').appendChild(row);
+}
+function money(copper){
+    if (copper < 10){
+        return copper + "cp";
+    } else if (copper < 100) {
+        return copper/10 + "sp";
+    } else {
+        return copper/100 + "gp";
+    };
+};
 // data
 var classData = {
     'Barbarian':{'Type':'Core','StartingWealth':3,'AvgStartingGold':105,'RanksLevel':4,'Player':1,'HitDie':12,'AgeCategory':'Intuitive',
@@ -333,7 +403,7 @@ var raceData = {
     'Drow':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'elf','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Elven, Undercommon','Senses':'Superior darkvision, light blindness','Defensive Traits':'Elven immunities, spell resistance','Offensive Traits':'Poison use, weapon familiarity','Skill Bonuses':'Perception','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'dancing lights, darkness, faerie fire','Race Points':14,'Source':'Featured','BaseAge':110,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'10d6','mHeight':64,'mHeightMod':'2d6','mWeight':90,'mWeightMod':'10d6','fHeight':64,'fHeightMod':'2d8','fWeight':110,'fWeightMod':'10d8',},
     'Fetchling':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common','Senses':'Darkvision, low-light vision','Defensive Traits':'Shadow blending, shadowy resistance','Offensive Traits':'','Skill Bonuses':'Knowledge (planes), Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'disguise self, shadow walk, plane shift','Race Points':17,'Source':'Featured','BaseAge':20,'Intuitive':'1d6','SelfTaught':'2d6','Trained':'3d6','mHeight':64,'mHeightMod':'2d6','mWeight':90,'mWeightMod':'6d6','fHeight':62,'fHeightMod':'2d6','fWeight':80,'fWeightMod':'6d6',},
     'Goblin':{'con':0,'wis':0,'cha':-2,'dex':4,'str':-2,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'goblinoid','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Goblin','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'Ride, Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':10,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':32,'mHeightMod':'2d4','mWeight':30,'mWeightMod':'2d4','fHeight':30,'fHeightMod':'2d4','fWeight':25,'fWeightMod':'2d4',},
-    'Hobgoblin':{'con':2,'wis':0,'cha':0,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'goblinoid','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Goblin','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Featured','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':50,'mHeightMod':'2d8','mWeight':165,'mWeightMod':'10d8','fHeight':48,'fHeightMod':'2d8','fWeight':145,'fWeightMod':'10d8',},
+    'Hobgoblin':{'con':2,'wis':0,'cha':0,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'goblinoid','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Goblin','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Featured','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':50,'mHeightMod':'2d8','mWeight':165,'mWeightMod':'10d8','fHeight':48,'fHeightMod':'2d8','fWeight':145,'fWeightMod':'10d8','scripts':['darkvision60']},
     'Ifrit':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Ignan','Senses':'Darkvision','Defensive Traits':'Energy resistance','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'burning hands','Race Points':6,'Source':'Featured','BaseAge':60,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'8d6','mHeight':62,'mHeightMod':'2d8','mWeight':110,'mWeightMod':'10d8','fHeight':60,'fHeightMod':'2d8','fWeight':90,'fWeightMod':'10d8',},
     'Kobold':{'con':-2,'wis':0,'cha':0,'dex':2,'str':-4,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'reptilian','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Draconic','Senses':'Darkvision, light sensitivity','Defensive Traits':'Armor','Offensive Traits':'','Skill Bonuses':'Craft (trapmaking), Perception, Profession (miner)','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':5,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':30,'mHeightMod':'2d4','mWeight':25,'mWeightMod':'2d4','fHeight':28,'fHeightMod':'2d4','fWeight':20,'fWeightMod':'2d4',},
     'Orc':{'con':0,'wis':-2,'cha':-2,'dex':0,'str':4,'int':-2,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'orc','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Orc','Senses':'Darkvision, light sensitivity','Defensive Traits':'','Offensive Traits':'Ferocity, weapon familiarity','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':8,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':61,'mHeightMod':'2d12','mWeight':160,'mWeightMod':'14d12','fHeight':57,'fHeightMod':'2d12','fWeight':120,'fWeightMod':'14d12',},
@@ -356,19 +426,19 @@ var raceData = {
     'Vanara':{'con':0,'wis':2,'cha':-2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'vanara','Speed':30,'Swim':0,'Climb':20,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Vanaran','Senses':'Low-light vision','Defensive Traits':'Prehensile tail','Offensive Traits':'','Skill Bonuses':'Acrobatics, Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':8,'Source':'Uncommon','BaseAge':14,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':56,'mHeightMod':'2d8','mWeight':105,'mWeightMod':'10d8','fHeight':50,'fHeightMod':'2d8','fWeight':90,'fWeightMod':'10d8',},
 }
 var sizeData = {
-    'Fine':{'Mod':8,'Fly':8,'Stealth':16,'Space':0.5,'Reach':0,'Dimensions':0.5,'Weight':0,},
-    'Diminutive':{'Mod':4,'Fly':6,'Stealth':12,'Space':1,'Reach':0,'Dimensions':1,'Weight':0.125,},
-    'Tiny':{'Mod':2,'Fly':4,'Stealth':8,'Space':2.5,'Reach':0,'Dimensions':2,'Weight':1,},
-    'Small':{'Mod':1,'Fly':2,'Stealth':4,'Space':5,'Reach':5,'Dimensions':4,'Weight':8,},
-    'Medium':{'Mod':0,'Fly':0,'Stealth':0,'Space':5,'Reach':5,'Dimensions':8,'Weight':60,},
-    'Large':{'Mod':-1,'Fly':-2,'Stealth':-4,'Space':10,'Reach':10,'Dimensions':16,'Weight':500,},
-    'LargeLong':{'Mod':-1,'Fly':-2,'Stealth':-4,'Space':10,'Reach':5,'Dimensions':16,'Weight':500,},
-    'Huge':{'Mod':-2,'Fly':-4,'Stealth':-8,'Space':15,'Reach':15,'Dimensions':32,'Weight':2000,},
-    'HugeLong':{'Mod':-2,'Fly':-4,'Stealth':-8,'Space':15,'Reach':10,'Dimensions':32,'Weight':2000,},
-    'Gargantuan':{'Mod':-4,'Fly':-6,'Stealth':-12,'Space':20,'Reach':20,'Dimensions':64,'Weight':32000,},
-    'GargantuanLong':{'Mod':-4,'Fly':-6,'Stealth':-12,'Space':20,'Reach':15,'Dimensions':64,'Weight':32000,},
-    'Colossal':{'Mod':-8,'Fly':-8,'Stealth':-16,'Space':30,'Reach':30,'Dimensions':128,'Weight':250000,},
-    'ColossalLong':{'Mod':-8,'Fly':-8,'Stealth':-16,'Space':30,'Reach':20,'Dimensions':128,'Weight':250000,}    
+    'Fine':{'Mod':8,'Fly':8,'Stealth':16,'Space':0.5,'Reach':0,'Dimensions':0.5,'Weight':0,'carry':0.125,'quad':0.25},
+    'Diminutive':{'Mod':4,'Fly':6,'Stealth':12,'Space':1,'Reach':0,'Dimensions':1,'Weight':0.125,'carry':0.25,'quad':0.5},
+    'Tiny':{'Mod':2,'Fly':4,'Stealth':8,'Space':2.5,'Reach':0,'Dimensions':2,'Weight':1,'carry':0.5,'quad':0.75},
+    'Small':{'Mod':1,'Fly':2,'Stealth':4,'Space':5,'Reach':5,'Dimensions':4,'Weight':8,'carry':0.75,'quad':1},
+    'Medium':{'Mod':0,'Fly':0,'Stealth':0,'Space':5,'Reach':5,'Dimensions':8,'Weight':60,'carry':1,'quad':1.5},
+    'Large':{'Mod':-1,'Fly':-2,'Stealth':-4,'Space':10,'Reach':10,'Dimensions':16,'Weight':500,'carry':2,'quad':3},
+    'LargeLong':{'Mod':-1,'Fly':-2,'Stealth':-4,'Space':10,'Reach':5,'Dimensions':16,'Weight':500,'carry':2,'quad':3},
+    'Huge':{'Mod':-2,'Fly':-4,'Stealth':-8,'Space':15,'Reach':15,'Dimensions':32,'Weight':2000,'carry':4,'quad':6},
+    'HugeLong':{'Mod':-2,'Fly':-4,'Stealth':-8,'Space':15,'Reach':10,'Dimensions':32,'Weight':2000,'carry':4,'quad':6},
+    'Gargantuan':{'Mod':-4,'Fly':-6,'Stealth':-12,'Space':20,'Reach':20,'Dimensions':64,'Weight':32000,'carry':8,'quad':12},
+    'GargantuanLong':{'Mod':-4,'Fly':-6,'Stealth':-12,'Space':20,'Reach':15,'Dimensions':64,'Weight':32000,'carry':8,'quad':12},
+    'Colossal':{'Mod':-8,'Fly':-8,'Stealth':-16,'Space':30,'Reach':30,'Dimensions':128,'Weight':250000,'carry':16,'quad':24},
+    'ColossalLong':{'Mod':-8,'Fly':-8,'Stealth':-16,'Space':30,'Reach':20,'Dimensions':128,'Weight':250000,'carry':16,'quad':24}
 }
 var abilities = {
     'str':{'name':'Strength'},
@@ -429,3 +499,59 @@ var skillData = {
     'Swim':{'untrained':1,'armorCheckPenalty':1,'ability':'str',},
     'Use Magic Device':{'untrained':0,'armorCheckPenalty':0,'ability':'cha',},
 }
+var loadData = [
+    {'light':0,'medium':0,'heavy':0},
+    {'light':3,'medium':6,'heavy':10},
+    {'light':6,'medium':13,'heavy':20},
+    {'light':10,'medium':20,'heavy':30},
+    {'light':13,'medium':26,'heavy':40},
+    {'light':16,'medium':33,'heavy':50},
+    {'light':20,'medium':40,'heavy':60},
+    {'light':23,'medium':46,'heavy':70},
+    {'light':26,'medium':53,'heavy':80},
+    {'light':30,'medium':60,'heavy':90},
+    {'light':33,'medium':66,'heavy':100},
+    {'light':38,'medium':76,'heavy':115},
+    {'light':43,'medium':86,'heavy':130},
+    {'light':50,'medium':100,'heavy':150},
+    {'light':58,'medium':116,'heavy':175},
+    {'light':66,'medium':133,'heavy':200},
+    {'light':76,'medium':153,'heavy':230},
+    {'light':86,'medium':173,'heavy':260},
+    {'light':100,'medium':200,'heavy':300},
+    {'light':116,'medium':233,'heavy':350},
+    {'light':133,'medium':266,'heavy':400},
+    {'light':153,'medium':306,'heavy':460},
+    {'light':173,'medium':346,'heavy':520},
+    {'light':200,'medium':400,'heavy':600},
+    {'light':233,'medium':466,'heavy':700},
+    {'light':266,'medium':533,'heavy':800},
+    {'light':306,'medium':613,'heavy':920},
+    {'light':346,'medium':693,'heavy':1040},
+    {'light':400,'medium':800,'heavy':1200},
+    {'light':466,'medium':933,'heavy':1400},
+    {'light':532,'medium':1064,'heavy':1600},
+    {'light':612,'medium':1224,'heavy':1840},
+    {'light':692,'medium':1384,'heavy':2080},
+    {'light':800,'medium':1600,'heavy':2400},
+    {'light':932,'medium':1864,'heavy':2800},
+    {'light':1064,'medium':2132,'heavy':3200},
+    {'light':1224,'medium':2452,'heavy':3680},
+    {'light':1384,'medium':2772,'heavy':4160},
+    {'light':1600,'medium':3200,'heavy':4800},
+    {'light':1864,'medium':3732,'heavy':5600},
+    {'light':2128,'medium':4256,'heavy':6400},
+    {'light':2448,'medium':4896,'heavy':7360},
+    {'light':2768,'medium':5536,'heavy':8320},
+    {'light':3200,'medium':6400,'heavy':9600},
+    {'light':3728,'medium':7456,'heavy':11200},
+    {'light':4256,'medium':8528,'heavy':12800}
+]
+var encumbranceData = {
+    'Light':{'maxDex':80,'checkPenalty':0,'speed':function(){return c.speed},'run':4,'name':'Light'},
+    'Medium':{'maxDex':3,'checkPenalty':-3,'speed':function(){return reduceSpeed(c.speed)},'run':4,'name':'Medium'},
+    'Heavy':{'maxDex':1,'checkPenalty':-6,'speed':function(){return reduceSpeed(c.speed)},'run':3,'name':'Heavy'},
+    'Staggered':{'maxDex':0,'checkPenalty':-9,'speed':function(){return 5},'run':1,'name':'Staggered'}, // I made up the check penalties for these last two
+    'Immobile':{'maxDex':0,'checkPenalty':-12,'speed':function(){return 0},'run':1,'name':'Immobile'}
+}
+function reduceSpeed(org){return Math.round(org/7.5)*5}

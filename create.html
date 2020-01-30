@@ -186,7 +186,8 @@ function updateType(){
     document.getElementById('offense').innerHTML = raceData[c.race]["Offensive Traits"].replace('Â','');
     document.getElementById('skillBonus').innerHTML = raceData[c.race]["Skill Bonuses"].replace('Â','');
     document.getElementById('special').innerHTML = raceData[c.race]["Spell-Like (Sp) or Supernatural (Su) Abilities"].replace('Â','');
-    c.hp, c.maxHP = classData[c.class].HitDie;
+    c.maxHP = classData[c.class].HitDie;
+    c.hp = classData[c.class].HitDie;
     document.getElementById('hp').innerHTML = c.hp;
     // add natural attacks
     if (typeof(raceData[c.race].naturalAttacks) == "undefined"){
@@ -406,7 +407,7 @@ function rollForOther(){
     document.getElementById('otherTotal').innerHTML = JSON.stringify(c.other);
 }
 
-// feats
+// feats - I just fucked this all up
 function loadFeats(){
     for (i in featData){
         var o = document.createElement('option');

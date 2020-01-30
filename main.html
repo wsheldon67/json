@@ -2,6 +2,8 @@
 <head>
 <script src='data.js'></script>
 <script src='items.js'></script>
+<script src='scriptFunctions.js'></script>
+<script src='character.js'></script>
 <link rel="stylesheet" type="text/css" href="style.css">
 <style>
 
@@ -11,12 +13,12 @@
 <div class='panel' style='width: 160px'>
     <input class='row' type="file" id='cFile'>
     <h2>Panels</h2>
-    <div class='row'><button onclick='show("skills")'>Skills</button></div>
-    <div class='row'><button onclick='show("otherRolls")'>Other Rolls</button></div>
-    <div class='row'><button onclick='show("combat")'>Combat</button></div>
-    <div class='row'><button onclick='show("inventory")'>Inventory</button></div>
-    <div class='row'><button onclick='show("notes")'>Notes</button></div>
-    <div class='row'><button onclick='show("info")'>Character Info</button></div>
+    <div class='row'><button onclick='show("skills")' id='skillsShow'>Skills</button></div>
+    <div class='row'><button onclick='show("otherRolls")' id='otherRollsShow'>Other Rolls</button></div>
+    <div class='row'><button onclick='show("combat")' id='combatShow'>Combat</button></div>
+    <div class='row'><button onclick='show("inventory")' id='inventoryShow'>Inventory</button></div>
+    <div class='row'><button onclick='show("notes")' id='notesShow'>Notes</button></div>
+    <div class='row'><button onclick='show("info")' id='infoShow'>Character Info</button></div>
     <h2>Dice Roller</h2>
     <div class='row'><input type='number' min='0' value='1' id='diceQ'>d<input type='number' min='0' value='20' id='diceD'></div>
     <button onclick='diceRoller()'>Roll</button>
@@ -34,7 +36,7 @@
     <h2>Ability Rolls</h2>
     <table id='abilityRolls'></table>
     <h2>Saving Throws</h2>
-    <table>
+    <table id='savingThrowContainer'>
         <tr><td>Fortitude</td><td><button onclick='saveRoll("fort")'>Roll</button></td><td id='fortSave'></td></tr>
         <tr><td>Reflex</td><td><button onclick='saveRoll("ref")'>Roll</button></td><td id='refSave'></td></tr>
         <tr><td>Will</td><td><button onclick='saveRoll("will")'>Roll</button></td><td id='willSave'></td></tr>
@@ -44,7 +46,7 @@
     <div class='panel'>
         <h2>Weapons</h2>
         <h3>Main Attack</h3>
-        <select id='mainHandWeapon' oninput='updateWeapon("mainHand")'><option>None</option></select>
+        <select id='mainHandWeapon' oninput='updateWeapon("mainHand")'><option>None</option><option>Crossbow, light</option></select>
         <select id='mainHandAmmo' style='display: none;'><option>None</option></select>
         <div class='row'>Dmg: <div id='mainHandDmg'></div></div>
         <div class='row'>Crit: <div id='mainHandCrit'></div></div>
@@ -70,6 +72,10 @@
         <div class='row'>Dmg: <div id='natural3Dmg'></div></div>
         <div class='row'>Crit: <div id='natural3Crit'></div></div>
         <div class='row' style='display: none;'>Range: <div id='natural3Range'></div></div>
+        <h2 id='armorHeader'>Armor</h2>
+        <select id='armor' oninput='updateAC()'><option>None</option></select>
+        <h2 id='sheildHeader'>Shield</h2>
+        <select id='sheild' oninput='updateAC()'><option>None</option></select>
     </div>
     <div class='panel'>
         <h2>Standard Attack</h2>
@@ -124,13 +130,21 @@
     </div>
     <div class='panel'>
         <h2>Initiative</h2>
-        <button onclick="document.getElementById('initiative').innerHTML = dice(1,20) + c.dexMod;">Roll</button>
+        <button onclick="document.getElementById('initiative').innerHTML = dice(1,20) + t.abilities.mod('dex');">Roll</button>
         <div id='initiative' style='text-align: center; font-size: 2em'></div>
         <h2><span id='currentHP'></span>/<span id='maxHP'></span> HP</h2>
         <table>
-            <tr><td>Regular</td><td><progress id='regularHpBar'></progress></td><td><input type='number'></td><td><button>Add</button></td></tr>
-            <tr><td>Non-Lethal</td><td><progress id='nlHpBar'></progress></td><td><input type='number'></td><td><button>Add</button></td></tr>
+            <tr><td>Regular</td><td><progress id='regularHpBar' style='width: 80px'></progress></td><td><input type='number' id='regularHpInput'></td><td><button onclick='addHP()'>Add</button></td></tr>
+            <tr><td>Non-Lethal</td><td><progress id='nlHpBar' style='width: 80px'></progress></td><td><input type='number' id='nlDmgInput'></td><td><button onclick='addNlDmg()'>Add</button></td></tr>
         </table>
+        <div id='acContainer'>
+            <h2>AC: <span id='ac'></span></h2>
+            <div class='row'>Touch AC: <span id='touchAC'></span></div>
+        </div>
+        <h2>Conditions</h2>
+        <div id='conditions'>
+
+        </div>
     </div>
 </div>
 <div class='panel' id='inventory'>
@@ -149,8 +163,28 @@
 <div class='panel' id='notes'>
 
 </div>
-<div class='panel' id='info'>
+<div class='panel' id='info' style='width: 240px'>
     <h2 id='name'></h2>
+    <div id='classy' style='text-align: center;'></div>
+    <div id='racey' style='text-align: center;'></div>
+    <h3>Physical</h3>
+    <div class='row'>Sex: <div id='sexy'></div></div>
+    <div class='row'>Age: <div id='agey'></div></div>
+    <div class='row'>Height: <div id='heighty'></div></div>
+    <div class='row'>Weight: <div id='weighty'></div></div>
+    <h3>Other</h3>
+    <div class='row'>Base Attack: <div id='baby'></div></div>
+    <div class='row'>Wealth: 
+        <div>
+        <input type='number' id='wealthAdd'>
+        <select id='wealthType'><option>gp</option><option>sp</option><option>cp</option></select>
+        <button onclick='addWealth()'>Add</button>
+        </div>
+        <div id='wealthy'></div>
+    </div>
+    <div class='panel' id='customInfo'></div>
+    <h2>Mods</h2>
+    <div class='panel' id='mods'></div>
 </div>
 <script>
 var itemObject = {};
@@ -188,28 +222,33 @@ function onload(){
 
 // post character to page
 function postC(){
+    createTemp();
     addSkills();
     addOtherRolls();
     addInfo();
     displayInventory();
     displayPrimaryAttacks();
+    addArmor();
+    updateAC();
+    activateScripts();
 }
 function addSkills(){
-    for (i in c.skills){
+    var i;
+    for (i in c.skills.rank){
         var row = document.createElement('tr');
         var skill = document.createElement('td');
         skill.innerHTML = i;
         row.appendChild(skill);
         var mod = document.createElement('td');
-        var modTotal = 0;
-        for (k in c.skills[i]){
-            modTotal += c.skills[i][k];
-        }
-        mod.innerHTML = modTotal;
+        mod.innerHTML = t.skills.total(i).total;
+        mod.title = JSON.stringify(t.skills.total(i));
+        mod.id = i + 'Mod';
         row.appendChild(mod);
         var roll = document.createElement('button');
         var rolltd = document.createElement('td');
         roll.innerHTML = 'Roll';
+        roll.id = i+'Roll';
+        if (skillData[i].untrained == 0 && c.skills.rank[i] == 0){roll.setAttribute('disabled','disabled')}
         roll.setAttribute('onclick','skillRoll("'+i+'")');
         rolltd.appendChild(roll);
         row.appendChild(rolltd);
@@ -220,11 +259,12 @@ function addSkills(){
     }
 }
 function addOtherRolls(){
+    var i;
     for (i in abilities){
         var row = document.createElement('tr');
         var label = document.createElement('td');
         label.innerHTML = i;
-        label.title = 'Mod: '+c[i+'Mod'];
+        label.title = 'Mod: '+t.abilities.mod(i);
         row.appendChild(label);
         var buttontd = document.createElement('td');
         var button = document.createElement('button');
@@ -239,22 +279,38 @@ function addOtherRolls(){
     }
 }
 function addInfo(){
+    // hp
     document.getElementById('name').innerHTML = c.name;
     document.getElementById('regularHpBar').value = c.hp;
     document.getElementById('regularHpBar').max = c.maxHP;
     document.getElementById('nlHpBar').value = c.nlDmg;
     document.getElementById('nlHpBar').max = c.maxHP;
+    document.getElementById('nlHpBar').title = c.nlDmg;
+    document.getElementById('currentHP').innerHTML = c.hp;
+    document.getElementById('maxHP').innerHTML = c.maxHP;
+    // other
+    var basicInfo = ['class','race','sex','age','bab'];
+    var i;
+    for (i of basicInfo){document.getElementById(i+'y').innerHTML = c[i]};
+    document.getElementById('weighty').innerHTML = t.prettyWeight();
+    document.getElementById('heighty').innerHTML = t.prettyHeight();
+    document.getElementById('wealthy').innerHTML = t.prettyWealth();
+    for (i in t.other){
+        var row = document.createElement('div');
+        row.innerHTML = i + ":";
+        row.style = 'margin-bottom: 5px'
+        var data = document.createElement('div');
+        data.innerHTML = JSON.stringify(t.other[i]);
+        row.appendChild(data);
+        document.getElementById('customInfo').appendChild(row);
+    }
 }
 
 // rolls
 function skillRoll(skill){
-    var modTotal = 0;
-    for (k in c.skills[skill]){
-        modTotal += c.skills[skill][k];
-    }
-    var roll = dice(1,20)
-    document.getElementById(skill+'Result').innerHTML = roll + modTotal;
-    document.getElementById(skill+'Result').title = 'd20: ' + roll;
+    var o = t.skills.roll(skill);
+    document.getElementById(skill+'Result').innerHTML = o.total;
+    document.getElementById(skill+'Result').title = JSON.stringify(o);
 }
 function diceRoller(){
     var q = Number(document.getElementById('diceQ').value);
@@ -262,16 +318,14 @@ function diceRoller(){
     document.getElementById('diceResult').innerHTML = dice(q,d);
 }
 function abilityRoll(ability){
-    var roll = dice(1,20);
-    document.getElementById(ability+'Result').innerHTML = roll + c[ability+'Mod'];
-    document.getElementById(ability+'Result').title = 'd20: ' + roll;
+    var o = t.abilities.roll(ability);
+    document.getElementById(ability+'Result').innerHTML = o.total;
+    document.getElementById(ability+'Result').title = JSON.stringify(o);
 }
 function saveRoll(save){
-    var roll = dice(1,20);
-    var saveMods = {'fort':c.conMod,'ref':c.dexMod,'will':c.wisMod}
-    var totalMod = saveMods[save] + c[save+'Save'];
-    document.getElementById(save+'Save').innerHTML = roll + totalMod;
-    document.getElementById(save+'Save').title = 'd20: '+roll;
+    var o = t.saves.roll(save);
+    document.getElementById(save+'Save').innerHTML = o.total;
+    document.getElementById(save+'Save').title = JSON.stringify(o);
 }
 
 // Inventory
@@ -368,23 +422,44 @@ function displayInventory(){
         o.innerHTML = i;
         document.getElementById('itemLocations').appendChild(o);
         var header = document.createElement('h2');
-        header.innerHTML = i;
-        //header.id = i + 'Header';
+        header.innerHTML = i + ' - ' + Math.round(t.totalWeight(i)) + ' lbs';
         document.getElementById('inventoryDisplay').appendChild(header);
         for (k in c.items[i]){
             var cat = document.createElement('h3');
             cat.innerHTML = k;
             document.getElementById('inventoryDisplay').appendChild(cat);
             for (j in c.items[i][k]){
+                var row = document.createElement('div');
+                row.setAttribute('style','display: flex; justify-content: space-between;')
                 var item = document.createElement('div');
                 var nitemObject = c.items[i][k][j];
                 item.innerHTML = nitemObject.quantity +" - "+ nitemObject.name;
-                item.title = nitemObject.description;
-                document.getElementById('inventoryDisplay').appendChild(item);
+                if(typeof(nitemObject.description == 'undefined')){item.title = JSON.stringify(nitemObject)}else{item.title = nitemObject.description};
+                row.appendChild(item);
+                var groupy = document.createElement('div');
+                var input = document.createElement('input');
+                input.type = 'number';
+                input.value = -1;
+                input.id = nitemObject.name+'Quant';
+                groupy.appendChild(input);
+                var button = document.createElement('button');
+                button.setAttribute('onclick','editItem("'+i+'","'+k+'","'+nitemObject.name+'")');
+                button.innerHTML = 'Add';
+                groupy.appendChild(button);
+                row.appendChild(groupy);
+                document.getElementById('inventoryDisplay').appendChild(row);
             }
         }
     }
     updateAvailableWeapons();
+}
+function editItem(location,cat,item){
+    var quant = Number(document.getElementById(item+'Quant').value);
+    c.items[location][cat][item].quantity += quant;
+    if (c.items[location][cat][item].quantity <= 0){
+        delete c.items[location][cat][item];
+    }
+    displayInventory();
 }
 
 // combat
@@ -410,29 +485,25 @@ function updateAvailableWeapons(){
         }
     }
 }
-var currentWeapons = {};
 function updateWeapon(body){
-    var weapons = c.items.Inventory.Weapons;
-    weapons.None = {'sDmg':'','mDmg':'','crit':'','mincrit':'','isNone':true}
-    currentWeapons[body] = weapons[document.getElementById(body+'Weapon').value];
+    var o = t.attack.currentWeapon(body);
     if (body == 'mainHand'){updateMainWeapon()};
-    var sizeDmg = {'Small':'sDmg','Medium':'mDmg'};
-    document.getElementById(body+'Dmg').innerHTML = currentWeapons[body][sizeDmg[c.size]];
-    document.getElementById(body+'Crit').innerHTML = currentWeapons[body].mincrit + " / x" + currentWeapons[body].crit;
-    if (currentWeapons[body].subCat == "Ranged"){
-        document.getElementById(body+'Range').innerHTML = currentWeapons[body].range;
+    document.getElementById(body+'Dmg').innerHTML = o[t.size.dmg()];
+    document.getElementById(body+'Crit').innerHTML = o.mincrit + " / x" + o.crit;
+    if (o.subCat == "Ranged"){
+        document.getElementById(body+'Range').innerHTML = o.range;
         document.getElementById(body+'Range').parentNode.setAttribute('style','display: flex;');
     } else {
         document.getElementById(body+'Range').parentNode.setAttribute('style','display: none;');
     }
-    if (!currentWeapons[body].isNone){
+    if (!o.isNone){
         document.getElementById(body).setAttribute('style','display: flex;');
     } else {
         document.getElementById(body).setAttribute('style','display: none;');
     }
 }
 function updateMainWeapon(){
-    if (currentWeapons.mainHand.subCat == 'Two-Handed Melee'){
+    if (t.attack.currentWeapon('mainHand').subCat == 'Two-Handed Melee'){
         document.getElementById('offHandWeapon').value = 'None';
         document.getElementById('offHandWeapon').setAttribute('disabled','disabled');
     } else {
@@ -446,68 +517,99 @@ function displayPrimaryAttacks(){
         case 1: document.getElementById('primary2').setAttribute('style','display: flex;');
     }
 }
-var attack = {}
 function attackRoll(body){
-    attack[body] = {};   
-    attack[body].bab = c.bab;
-    attack[body].size = -c.sizeMod;
-    if (currentWeapons[body].subCat == 'Ranged'){
-        attack[body].dex = c.dexMod;
-    } else {
-        attack[body].str = c.strMod;
-    }
-    attack[body].roll = dice(1,20);
-    // nat1/20
-    if (attack[body].roll == 1){
-        document.getElementById(body+'Nat').innerHTML = 'Nat 1!';
-        document.getElementById(body+'Nat').title = 'Automatic miss';
-        document.getElementById(body+'Nat').setAttribute('style','display: flex;');
-    } else if (attack[body].roll == 20){
-        document.getElementById(body+'Nat').innerHTML = 'Nat 20!';
-        document.getElementById(body+'Nat').title = 'Automatic hit';
-        document.getElementById(body+'Nat').setAttribute('style','display: flex;');
-    } else {
-        document.getElementById(body+'Nat').setAttribute('style','display: none;');
-    }
+    var o = t.attack.roll(body);
     // crit
-    if (attack[body].roll >= currentWeapons[body].mincrit){
+    if (o.crit){
         document.getElementById(body+'CritConfirm').setAttribute('style','display: flex;');
     }
-    // addemup
-    var totalAttack = 0;
-    for (i in attack[body]){
-        totalAttack += attack[body][i];
+    // nats
+    if (o.roll == 1){
+        document.getElementById(body+'Nat').innerHTML = 'Nat1';
+        document.getElementById(body+'Nat').title = 'Automatic miss';
+    } else if (o.roll == 20){
+        document.getElementById(body+'Nat').innerHTML = 'Nat20';
+        document.getElementById(body+'Nat').title = 'Automatic hit';
+    } else {
+        document.getElementById(body+'Nat').innerHTML = '';
+        document.getElementById(body+'Nat').title = '';
     }
     // post
-    document.getElementById(body+'AttackRoll').innerHTML = totalAttack;
-    document.getElementById(body+'AttackRoll').title = JSON.stringify(attack[body]);
+    document.getElementById(body+'AttackRoll').innerHTML = o.total;
+    document.getElementById(body+'AttackRoll').title = JSON.stringify(o);
 }
-var dmg = {'mainHandMultipliers':{'crit':1}};
 function dmgRoll(body){
-    dmg[body] = {};
-    var sizeDmg = {'Small':'sDmg','Medium':'mDmg'};
-    dmg[body].weapon = diceText(currentWeapons[body][sizeDmg[c.size]]);
-    if (currentWeapons[body].subCat != 'Ranged'){
-        dmg[body].str = c.strMod;
-    }
-    // addemup
-    var totalDmg = 0;
-    for (i in dmg[body]){
-        totalDmg += dmg[body][i];
-    }
-    var totalMult = 0;
-    for (i in dmg[body+'Multipliers']){
-        totalMult += dmg[body+'Multipliers'][i];
-    }
-    totalDmg = totalDmg * totalMult;
-    document.getElementById(body+'DmgRoll').innerHTML = totalDmg;
-    document.getElementById(body+'DmgRoll').title = JSON.stringify(dmg[body]) + JSON.stringify(dmg[body+'Multipliers']);
+    var o = t.dmg.roll(body);
+    document.getElementById(body+'DmgRoll').innerHTML = o.total;
+    document.getElementById(body+'DmgRoll').title = JSON.stringify(o);
     // reset crit
-    dmg[body+'Multipliers'].crit = 1;
+    t.dmg.mults[body].crit = 1;
 }
 function crit(body){
-    dmg[body+'Multipliers'].crit = currentWeapons[body].crit;
+    t.dmg.mults[body].crit = t.attack.currentWeapon(body).crit;
     document.getElementById(body+'CritConfirm').setAttribute('style','display: none;');
+}
+function addHP(){
+    var hp = Number(document.getElementById('regularHpInput').value);
+    c.hp += hp;
+    t.hp += hp;
+    if(c.hp > c.maxHP){c.hp = c.maxHP};
+    document.getElementById('currentHP').innerHTML = c.hp;
+    document.getElementById('regularHpBar').value = c.hp;
+}
+function addNlDmg(){
+    var nlDmg = Number(document.getElementById('nlDmgInput').value);
+    c.nlDmg += nlDmg;
+    t.nlDmg += nlDmg;
+    document.getElementById('nlHpBar').value = c.nlDmg;
+    document.getElementById('nlHpBar').title = c.nlDmg;
+}
+function updateAC(){
+    document.getElementById('armorHeader').title = JSON.stringify(t.ac.currentArmor());
+    document.getElementById('sheildHeader').title = JSON.stringify(t.ac.currentSheild());
+    document.getElementById('ac').innerHTML = t.ac.total().total;
+    document.getElementById('ac').title = JSON.stringify(t.ac.total());
+    document.getElementById('touchAC').innerHTML = t.ac.touch().total;
+    document.getElementById('touchAC').title = JSON.stringify(t.ac.touch());
+}
+function addArmor(){
+    var i;
+    for (i in c.items.Inventory.Armor){
+        var option = document.createElement('option');
+        option.innerHTML = i;
+        if (c.items.Inventory.Armor[i].subCat == 'Sheild'){
+            document.getElementById('sheild').appendChild(option);
+        } else {
+            document.getElementById('armor').appendChild(option);
+        }
+    }
+    updateAC();
+}
+
+// feats
+function activateScripts(){
+    var i;
+    for (i of c.scripts){
+        switch(i.length){
+            case 1:
+                scriptFunctions[i[0]].load();
+                break;
+            case 2:
+                scriptFunctions[i[0]].load(i[1]);
+                break;
+            case 3:
+                scriptFunctions[i[0]].load(i[1],i[2]);
+                break;
+        }
+    }
+}
+function addWealth(){
+    var num = Number(document.getElementById('wealthAdd').value);
+    var type = document.getElementById('wealthType').value;
+    var toAdd = num * {'gp':100,'sp':10,'cp':1}[type];
+    c.wealth += toAdd;
+    t.wealth += toAdd;
+    document.getElementById('wealthy').innerHTML = t.prettyWealth();
 }
 </script>
 </body>
