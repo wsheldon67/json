@@ -35,15 +35,47 @@ t.skills.roll=function(skill){
     components.total = total;
     return components;
 }
+t.skills.totalSpent=function(){
+    var total = 0;
+    var i;
+    for (i in this.rank){total+=this.rank[i]};
+    return total;
+}
+t.skills.totalRanks=function(){
+    var components = {
+        'class':classData[t.class].RanksLevel * t.level,
+        'int':t.abilities.mod('int') * t.level,
+        'fcb':t.skills.fcb
+    };
+    var i;
+    for (i in this.totalRanksMods){components[i] = this.totalRanksMods[i]};
+    var total = 0;
+    for (i in components){total+=components[i]};
+    components.total = total;
+    return components;
+}
 // abilities
+t.abilities.addTotal=function(){return levelData[t.level].abilityScore};
+t.abilities.addSpent=function(){
+    var total = 0;
+    var i;
+    for (i in t.abilities.add){total+=t.abilities.add[i]};
+    return total;
+};
+t.abilities.score=function(ab){return this.points[ab]+this.race[ab]+this.add[ab]};
 t.abilities.mods = {"str":{},"dex":{},"con":{},"int":{},"wis":{},"cha":{}};
-t.abilities.mod=function(ab){return Math.floor((this.score[ab]-10)/2)};
+t.abilities.mod=function(ab){
+    var total = Math.floor((this.score(ab)-10)/2);
+    var i;
+    for (i in this.mods[ab]){total+=this.mods[ab][i]};
+    return total;
+};
 t.abilities.roll=function(ab){
     var components = {
         'd20':dice(1,20),
         'abilityMod':this.mod(ab)
     }
-    for(i in this.mods[ab]){components[i] = this.mods[skill][i]};
+    var i;
     var total = 0;
     for (i in components){total += components[i]};
     components.total = total;
@@ -51,10 +83,11 @@ t.abilities.roll=function(ab){
 };
 // saves
 t.saves.mods = {'fort':{},'ref':{},'will':{}};
-t.saves.abilities = {'fort':'con','ref':'dex','will':'wis'}
+t.saves.abilities = {'fort':'con','ref':'dex','will':'wis'};
+t.saves.base=function(save){return classData[t.class].level[t.level][save+'Save']};
 t.saves.roll=function(save){
     var components = {
-        'base':this.base[save],
+        'base':this.base(save),
         'ability':t.abilities.mod(this.abilities[save]),
         'd20':dice(1,20)
     }
@@ -63,7 +96,7 @@ t.saves.roll=function(save){
     for (i in components){total += components[i]};
     components.total = total;
     return components;
-}
+};
 // AC
 t.items.Inventory.Armor.None={'bonus':0,'dexBonus':80,'acPenalty':0,'speed30':30,'speed20':20};
 t.ac={};
@@ -71,13 +104,13 @@ t.ac.mods={'dodge':{}}
 t.ac.dexAllowed = true;
 t.ac.funcs = {};
 t.ac.currentArmor=function(){return t.items.Inventory.Armor[document.getElementById('armor').value]};
-t.ac.currentSheild=function(){return t.items.Inventory.Armor[document.getElementById('sheild').value]};
+t.ac.currentShield=function(){return t.items.Inventory.Armor[document.getElementById('shield').value]};
 t.ac.dexBonus=function(){return Math.min(t.abilities.mod('dex'),this.currentArmor().dexBonus,t.load().maxDex)};
 t.ac.total=function(){
     var components = {
         'base':10,
         'armor':this.currentArmor().bonus,
-        'shield':this.currentSheild().bonus,
+        'shield':this.currentShield().bonus,
         'size':t.size.mod()
     }
     var i;
@@ -110,8 +143,10 @@ t.ac.touch=function(){
 // size
 t.size.mod=function(){return sizeData[this.name].Mod};
 t.size.dmg=function(){return {'Small':'sDmg','Medium':'mDmg'}[this.name]};
+t.size.dim=function(){return sizeData[this.name].Dimensions};
 // attack
 t.attack = {};
+t.attack.bab=function(){return classData[t.class].level[t.level].bab};
 t.attack.mods = {};
 t.attack.funcs = {};
 t.items.Inventory.Weapons.None = {'isNone':true,'sDmg':'1d2','mDmg':'1d3'};
@@ -120,7 +155,7 @@ t.attack.currentWeapon=function(body){return t.items.Inventory.Weapons[document.
 t.attack.currentAmmo=function(body){return t.items.Inventory.Ammunition[document.getElementById(body+'Ammo').value]};
 t.attack.roll=function(body){
     var components = {
-        'bab':t.bab,
+        'bab':t.attack.bab(),
         'size':-t.size.mod(),
         'd20':dice(1,20)
     }
@@ -197,6 +232,18 @@ t.prettyHeight=function(){
 }
 t.prettyWeight=function(){return this.weight + " lbs."};
 t.prettyWealth=function(){return money(this.wealth)};
+t.favoredClassSpent=function(){return t.skills.fcb + t.hp.fcb};
+t.totalFeats=function(){
+    var components = {};
+    if (t.class == 'Rogue'){components.level = t.level}else{components.level = levelData[t.level].feats};
+    if (t.class == 'Fighter'){components.fighter = 1};
+    if (t.race == 'Human'){components.human = 1};
+    var total = 0;
+    var i;
+    for (i in components){total+=components[i]};
+    components.total = total;
+    return components;
+}
 // inventory
 t.totalWeight=function(loc){
     var total = 0;
@@ -217,7 +264,7 @@ t.totalWeight=function(loc){
     return total;
 }
 t.load=function(){
-    var strCat = loadData[t.abilities.score.str];
+    var strCat = loadData[t.abilities.score('str')];
     var carrying = t.totalWeight('Inventory');
     var size;
     if(t.quad){size = sizeData[t.size.name].quad}else{size = sizeData[t.size.name].carry};
@@ -230,4 +277,19 @@ t.load=function(){
 t.checkPenalty=function(){return Math.min(t.load().checkPenalty,t.ac.currentArmor().acPenalty)};
 t.totalSpeed=function(){return Math.min(t.speed, t.ac.currentArmor()['speed'+t.speed], t.load().speed())};
 t.loadLimit=function(load){if(t.quad){return loadData[t.abilities.score.str][load]*sizeData[t.size.name].quad}else{return loadData[t.abilities.score.str][load]*sizeData[t.size.name].carry}}
-}
+// hp
+t.hp.max=function(){
+    var components = {
+        'fcb':this.fcb,
+        'class':classData[t.class].HitDie*t.level
+    };
+    var total = 0;
+    var i;
+    for (i in this.mods){components[i] = this.mods[i]};
+    for (i in components){total+=components[i]};
+    components.total = total;
+    return components;
+};
+t.scripts.class=function(){return classData[t.class].level[t.level].scripts};
+t.scripts.race=function(){return raceData[t.race].scripts};
+};

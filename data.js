@@ -9,6 +9,10 @@ var otherData = {
         
     }
 }
+var settings = {
+    'militaryTime':false,
+    'morningTime':8
+}
 // handy functions
 function dice(q,d){
     var result = 0;
@@ -32,7 +36,7 @@ function removeElement(elementID){
     element.parentNode.removeChild(element);
 };
 function randBetween(l,h){
-    return Math.floor(Math.random()*(h+1)+l);
+    return Math.floor(Math.random()*(h+1-l)+l);
 }
 function show(section){
     var s = document.getElementById(section);
@@ -72,24 +76,12 @@ function copySkill(oSkill, copyName){
     row.appendChild(result);
     document.getElementById('skillTable').appendChild(row);
 }
-function copySave(oSave, copyName, prettyName){
-    t.saves.abilities[copyName] = t.saves.abilities[oSave];
-    t.saves.base[copyName] = t.saves.base[oSave];
-    t.saves.mods[copyName] = {};
-    var row = document.createElement('tr');
-    var label = document.createElement('td');
-    label.innerHTML = prettyName;
-    row.appendChild(label);
-    var buttontd = document.createElement('td');
-    var button = document.createElement('button');
-    button.innerHTML = 'Roll';
-    button.setAttribute('onclick','saveRoll("'+copyName+'")');
-    buttontd.appendChild(button);
-    row.appendChild(buttontd);
-    var result = document.createElement('td');
-    result.id = copyName+'Save';
-    row.appendChild(result);
-    document.getElementById('savingThrowContainer').appendChild(row);
+function objectSum(o,returnObject){
+    var i;
+    var total = 0;
+    for (i in o){total+=o[i]};
+    o.total = total;
+    if(returnObject){return o}else{return total};
 }
 function addCondition(name,func){
     var row = document.createElement('div');
@@ -112,6 +104,16 @@ function money(copper){
         return copper/100 + "gp";
     };
 };
+function leadingZeros(num,digits){
+    var numString = num.toString()
+    var diff = digits-numString.length;
+    if (diff < 0){diff = 0};
+    while (diff > 0){
+        numString = '0' + numString;
+        diff--;
+    }
+    return numString;
+}
 // data
 var classData = {
     'Barbarian':{'Type':'Core','StartingWealth':3,'AvgStartingGold':105,'RanksLevel':4,'Player':1,'HitDie':12,'AgeCategory':'Intuitive',
@@ -317,26 +319,26 @@ var classData = {
     'Rogue':{'Type':'Core','StartingWealth':4,'AvgStartingGold':140,'RanksLevel':8,'Player':1,'HitDie':8,'AgeCategory':'Intuitive',
         'skills':{'Acrobatics':1,'Appraise':1,'Bluff':1,'Climb':1,'Craft':1,'Diplomacy':1,'Disable Device':1,'Disguise':1,'Escape Artist':1,'Fly':0,'Handle Animal':0,'Heal':0,'Intimidate':1,'K. Arcana':0,'K. Dungeon':1,'K. Engineering':0,'K. Geography':0,'K. History':0,'K. Local':1,'K. Nature':0,'K. Nobility':0,'K. Planes':0,'K. Religion':0,'Linguistics':1,'Perception':1,'Perform':1,'Profession':1,'Ride':0,'Sense Motive':1,'Sleight of Hand':1,'Spellcraft':0,'Stealth':1,'Survival':0,'Swim':1,'Use Magic Device':1,},
         'level':{
-            1:{"bab":0,"fortSave":0,"refSave":2,"willSave":0,"Special":"Sneak attack +1d6, trapfinding","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            2:{"bab":1,"fortSave":0,"refSave":3,"willSave":0,"Special":"Evasion, rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            3:{"bab":2,"fortSave":1,"refSave":3,"willSave":1,"Special":"Sneak attack +2d6, trap sense +1","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            4:{"bab":3,"fortSave":1,"refSave":4,"willSave":1,"Special":"Rogue talent, uncanny dodge","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            5:{"bab":3,"fortSave":1,"refSave":4,"willSave":1,"Special":"Sneak attack +3d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            6:{"bab":4,"fortSave":2,"refSave":5,"willSave":2,"Special":"Rogue talent, trap sense +2","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            7:{"bab":5,"fortSave":2,"refSave":5,"willSave":2,"Special":"Sneak attack +4d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            8:{"bab":6,"fortSave":2,"refSave":6,"willSave":2,"Special":"Improved uncanny dodge, rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            9:{"bab":6,"fortSave":3,"refSave":6,"willSave":3,"Special":"Sneak attack +5d6, trap sense +3","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            10:{"bab":7,"fortSave":3,"refSave":7,"willSave":3,"Special":"Advanced talents, rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            11:{"bab":8,"fortSave":3,"refSave":7,"willSave":3,"Special":"Sneak attack +6d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            12:{"bab":9,"fortSave":4,"refSave":8,"willSave":4,"Special":"Rogue talent, trap sense +4","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            13:{"bab":9,"fortSave":4,"refSave":8,"willSave":4,"Special":"Sneak attack +7d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            14:{"bab":10,"fortSave":4,"refSave":9,"willSave":4,"Special":"Rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            15:{"bab":11,"fortSave":5,"refSave":9,"willSave":5,"Special":"Sneak attack +8d6, trap sense +5","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            16:{"bab":12,"fortSave":5,"refSave":10,"willSave":5,"Special":"Rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            17:{"bab":12,"fortSave":5,"refSave":10,"willSave":5,"Special":"Sneak attack +9d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            18:{"bab":13,"fortSave":6,"refSave":11,"willSave":6,"Special":"Rogue talent, trap sense +6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            19:{"bab":14,"fortSave":6,"refSave":11,"willSave":6,"Special":"Sneak attack +10d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
-            20:{"bab":15,"fortSave":6,"refSave":12,"willSave":6,"Special":"Master strike, rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"",},
+            1:{"bab":0,"fortSave":0,"refSave":2,"willSave":0,"Special":"Sneak attack +1d6, trapfinding","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","1d6"],["trapFinding"]]},
+            2:{"bab":1,"fortSave":0,"refSave":3,"willSave":0,"Special":"Evasion, rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","1d6"],["trapFinding"],["evasion"]]},
+            3:{"bab":2,"fortSave":1,"refSave":3,"willSave":1,"Special":"Sneak attack +2d6, trap sense +1","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","2d6"],["trapFinding"],["evasion"],["trapSnese",1]]},
+            4:{"bab":3,"fortSave":1,"refSave":4,"willSave":1,"Special":"Rogue talent, uncanny dodge","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","2d6"],["trapFinding"],["evasion"],["trapSense",1],["uncannyDodge"]]},
+            5:{"bab":3,"fortSave":1,"refSave":4,"willSave":1,"Special":"Sneak attack +3d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","3d6"],["trapFinding"],["evasion"],["trapSense",1],["uncannyDodge"]]},
+            6:{"bab":4,"fortSave":2,"refSave":5,"willSave":2,"Special":"Rogue talent, trap sense +2","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","3d6"],["trapFinding"],["evasion"],["trapSense",2],["uncannyDodge"]]},
+            7:{"bab":5,"fortSave":2,"refSave":5,"willSave":2,"Special":"Sneak attack +4d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","4d6"],["trapFinding"],["evasion"],["trapSense",2],["uncannyDodge"]]},
+            8:{"bab":6,"fortSave":2,"refSave":6,"willSave":2,"Special":"Improved uncanny dodge, rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","4d6"],["trapFinding"],["evasion"],["trapSense",3],["uncannyDodge"],["improvedUncannyDodge"]]},
+            9:{"bab":6,"fortSave":3,"refSave":6,"willSave":3,"Special":"Sneak attack +5d6, trap sense +3","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","5d6"],["trapFinding"],["evasion"],["trapSense",3],["uncannyDodge"],["improvedUncannyDodge"]]},
+            10:{"bab":7,"fortSave":3,"refSave":7,"willSave":3,"Special":"Advanced talents, rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","5d6"],["trapFinding"],["evasion"],["trapSense",3],["uncannyDodge"],["improvedUncannyDodge"]]},
+            11:{"bab":8,"fortSave":3,"refSave":7,"willSave":3,"Special":"Sneak attack +6d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","6d6"],["trapFinding"],["evasion"],["trapSense",3],["uncannyDodge"],["improvedUncannyDodge"]]},
+            12:{"bab":9,"fortSave":4,"refSave":8,"willSave":4,"Special":"Rogue talent, trap sense +4","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","6d6"],["trapFinding"],["evasion"],["trapSense",4],["uncannyDodge"],["improvedUncannyDodge"]]},
+            13:{"bab":9,"fortSave":4,"refSave":8,"willSave":4,"Special":"Sneak attack +7d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","7d6"],["trapFinding"],["evasion"],["trapSense",4],["uncannyDodge"],["improvedUncannyDodge"]]},
+            14:{"bab":10,"fortSave":4,"refSave":9,"willSave":4,"Special":"Rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","7d6"],["trapFinding"],["evasion"],["trapSense",4],["uncannyDodge"],["improvedUncannyDodge"]]},
+            15:{"bab":11,"fortSave":5,"refSave":9,"willSave":5,"Special":"Sneak attack +8d6, trap sense +5","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","8d6"],["trapFinding"],["evasion"],["trapSense",5],["uncannyDodge"],["improvedUncannyDodge"]]},
+            16:{"bab":12,"fortSave":5,"refSave":10,"willSave":5,"Special":"Rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","8d6"],["trapFinding"],["evasion"],["trapSense",5],["uncannyDodge"],["improvedUncannyDodge"]]},
+            17:{"bab":12,"fortSave":5,"refSave":10,"willSave":5,"Special":"Sneak attack +9d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","9d6"],["trapFinding"],["evasion"],["trapSense",5],["uncannyDodge"],["improvedUncannyDodge"]]},
+            18:{"bab":13,"fortSave":6,"refSave":11,"willSave":6,"Special":"Rogue talent, trap sense +6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","9d6"],["trapFinding"],["evasion"],["trapSense",6],["uncannyDodge"],["improvedUncannyDodge"]]},
+            19:{"bab":14,"fortSave":6,"refSave":11,"willSave":6,"Special":"Sneak attack +10d6","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","10d6"],["trapFinding"],["evasion"],["trapSense",6],["uncannyDodge"],["improvedUncannyDodge"]]},
+            20:{"bab":15,"fortSave":6,"refSave":12,"willSave":6,"Special":"Master strike, rogue talent","s0":0,"s1":0,"s2":0,"s3":0,"s4":0,"s5":0,"s6":0,"s7":0,"s8":0,"s9":0,"FlurryofBlowsAttackBonus":"","UnarmedDamage":"","ACBonus":"","FastMovement":"","scripts":[["sneakAttack","10d6"],["trapFinding"],["evasion"],["trapSense",6],["uncannyDodge"],["improvedUncannyDodge"],["masterStrike"]]},
         }
     },
     'Sorcerer':{'Type':'Core','StartingWealth':2,'AvgStartingGold':70,'RanksLevel':2,'Player':1,'HitDie':6,'AgeCategory':'Intuitive',
@@ -403,7 +405,7 @@ var raceData = {
     'Drow':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'elf','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Elven, Undercommon','Senses':'Superior darkvision, light blindness','Defensive Traits':'Elven immunities, spell resistance','Offensive Traits':'Poison use, weapon familiarity','Skill Bonuses':'Perception','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'dancing lights, darkness, faerie fire','Race Points':14,'Source':'Featured','BaseAge':110,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'10d6','mHeight':64,'mHeightMod':'2d6','mWeight':90,'mWeightMod':'10d6','fHeight':64,'fHeightMod':'2d8','fWeight':110,'fWeightMod':'10d8',},
     'Fetchling':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common','Senses':'Darkvision, low-light vision','Defensive Traits':'Shadow blending, shadowy resistance','Offensive Traits':'','Skill Bonuses':'Knowledge (planes), Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'disguise self, shadow walk, plane shift','Race Points':17,'Source':'Featured','BaseAge':20,'Intuitive':'1d6','SelfTaught':'2d6','Trained':'3d6','mHeight':64,'mHeightMod':'2d6','mWeight':90,'mWeightMod':'6d6','fHeight':62,'fHeightMod':'2d6','fWeight':80,'fWeightMod':'6d6',},
     'Goblin':{'con':0,'wis':0,'cha':-2,'dex':4,'str':-2,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'goblinoid','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Goblin','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'Ride, Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':10,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':32,'mHeightMod':'2d4','mWeight':30,'mWeightMod':'2d4','fHeight':30,'fHeightMod':'2d4','fWeight':25,'fWeightMod':'2d4',},
-    'Hobgoblin':{'con':2,'wis':0,'cha':0,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'goblinoid','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Goblin','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Featured','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':50,'mHeightMod':'2d8','mWeight':165,'mWeightMod':'10d8','fHeight':48,'fHeightMod':'2d8','fWeight':145,'fWeightMod':'10d8','scripts':['darkvision60']},
+    'Hobgoblin':{'con':2,'wis':0,'cha':0,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'goblinoid','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Goblin','Senses':'Darkvision','Defensive Traits':'','Offensive Traits':'','Skill Bonuses':'Stealth','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':9,'Source':'Featured','BaseAge':15,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':50,'mHeightMod':'2d8','mWeight':165,'mWeightMod':'10d8','fHeight':48,'fHeightMod':'2d8','fWeight':145,'fWeightMod':'10d8','scripts':[['darkvision',60],['raceSneaky']]},
     'Ifrit':{'con':0,'wis':-2,'cha':2,'dex':2,'str':0,'int':0,'any':0,'Size':'Medium','Type':'Outsider','Subtype':'native','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Ignan','Senses':'Darkvision','Defensive Traits':'Energy resistance','Offensive Traits':'','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'burning hands','Race Points':6,'Source':'Featured','BaseAge':60,'Intuitive':'4d6','SelfTaught':'6d6','Trained':'8d6','mHeight':62,'mHeightMod':'2d8','mWeight':110,'mWeightMod':'10d8','fHeight':60,'fHeightMod':'2d8','fWeight':90,'fWeightMod':'10d8',},
     'Kobold':{'con':-2,'wis':0,'cha':0,'dex':2,'str':-4,'int':0,'any':0,'Size':'Small','Type':'Humanoid','Subtype':'reptilian','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Draconic','Senses':'Darkvision, light sensitivity','Defensive Traits':'Armor','Offensive Traits':'','Skill Bonuses':'Craft (trapmaking), Perception, Profession (miner)','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':5,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':30,'mHeightMod':'2d4','mWeight':25,'mWeightMod':'2d4','fHeight':28,'fHeightMod':'2d4','fWeight':20,'fWeightMod':'2d4',},
     'Orc':{'con':0,'wis':-2,'cha':-2,'dex':0,'str':4,'int':-2,'any':0,'Size':'Medium','Type':'Humanoid','Subtype':'orc','Speed':30,'Swim':0,'Climb':0,'Fly':0,'Clumsy':0,'Starting Languages':'Common, Orc','Senses':'Darkvision, light sensitivity','Defensive Traits':'','Offensive Traits':'Ferocity, weapon familiarity','Skill Bonuses':'','Bonus Feats':'','Spell-Like (Sp) or Supernatural (Su) Abilities':'','Race Points':8,'Source':'Featured','BaseAge':12,'Intuitive':'1d4','SelfTaught':'1d6','Trained':'2d6','mHeight':61,'mHeightMod':'2d12','mWeight':160,'mWeightMod':'14d12','fHeight':57,'fHeightMod':'2d12','fWeight':120,'fWeightMod':'14d12',},
@@ -554,4 +556,27 @@ var encumbranceData = {
     'Staggered':{'maxDex':0,'checkPenalty':-9,'speed':function(){return 5},'run':1,'name':'Staggered'}, // I made up the check penalties for these last two
     'Immobile':{'maxDex':0,'checkPenalty':-12,'speed':function(){return 0},'run':1,'name':'Immobile'}
 }
-function reduceSpeed(org){return Math.round(org/7.5)*5}
+function reduceSpeed(org){return Math.round(org/7.5)*5};
+var levelData = [
+    {'feats':0,'abilityScore':0},
+    {'feats':1,'abilityScore':0},
+    {'feats':1,'abilityScore':1},
+    {'feats':2,'abilityScore':1},
+    {'feats':2,'abilityScore':2},
+    {'feats':3,'abilityScore':2},
+    {'feats':3,'abilityScore':3},
+    {'feats':4,'abilityScore':3},
+    {'feats':4,'abilityScore':4},
+    {'feats':5,'abilityScore':4},
+    {'feats':5,'abilityScore':5},
+    {'feats':6,'abilityScore':5},
+    {'feats':6,'abilityScore':6},
+    {'feats':7,'abilityScore':6},
+    {'feats':7,'abilityScore':7},
+    {'feats':8,'abilityScore':7},
+    {'feats':8,'abilityScore':8},
+    {'feats':9,'abilityScore':8},
+    {'feats':9,'abilityScore':9},
+    {'feats':10,'abilityScore':9},
+    {'feats':10,'abilityScore':10}
+]

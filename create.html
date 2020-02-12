@@ -5,10 +5,12 @@
 
 </style>
 <script src='data.js'></script>
-<script src='feats.js'></script>
+<script src='scripts.js'></script>
 <script src='items.js'></script>
+<script src='character.js'></script>
 </head>
 <body onload='onload()'>
+<input id='armor' type='hidden' value='None'><input id='shield' type='hidden' value='None'>
 <div class='panel' style='width: 200px'>
     <input class='row' type="file" id='cFile'>
     <h2>General</h2>
@@ -16,7 +18,7 @@
     <div class='row'>Class: <select id='class' oninput="store('class')"></select></div>
     <div class='row'>Race: <select id='race' oninput="store('race')"></select></div>
     <div class='row'>Sex: <select id='gender' oninput="store('sex')"><option>Male</option><option>Female</option></select></div>
-    <div class='row'>Favored Class Bonus: <select id='fcb' oninput="updateType()"><option>+1 HP</option><option>+1 Skill</option></select></div>
+    <div class='row'>Level: <input type='number' id='level' value='1' min='1' max='20' oninput="updateType()"></div>
     <h2>Physical</h2>
     <div class='row'>Size: <div id='size'></div></div>
     <div class='row'>Speed: <div id='speed'></div></div>
@@ -41,14 +43,16 @@
     <a href='main.html'>Main</a>
 </div>
 <div class='panel' style='width: 350px'>
-    <h2>Abilities: <span id='abilityPoints'></span> Points</h2>
+    <h2>Abilities: <span id='abilityPoints'></span> Points, <span id='addScore'></span> Add. Score</h2>
     <h3 id='rbWrapper'>Race Bonus: <span id='raceBonus'></span></h3>
     <table id='abilityTable'>
-        <tr><th>Ability</th><th>Points</th><th>Cost</th><th>Race</th><th>Score</th><th>Mod</th></tr>
+        <tr><th>Ability</th><th>Points</th><th>Cost</th><th>Race</th><th>Add. Score</th><th>Score</th><th>Mod</th></tr>
     </table>
     <h2>Other Rolls</h2>
     <div class='row'><div><select id='otherRoll'></select><button onclick='rollForOther()'>Roll</button></div><div id='otherResult'></div></div>
     <div id='otherTotal'></div>
+    <h2>Favored Class Bonuses: <span id='favoredClassPoints'></span></h2>
+    <div class='row'><div>Skill: <input type='number' value='0' min='0' id='fcSkill' oninput='updateType()'></div><div>HP: <input type='number' value='0' min='0' id='fcHP' oninput='updateType()'></div></div>
 </div>
 <div class='panel'>
     <h2>Skills: <span id='skillPoints'></span> Ranks</h2>
@@ -60,24 +64,26 @@
     <h2>Feats: <span id='feats'></span></h2>
     <div class='row'><input list='featList' id='feat' oninput='updateFeats()'><button onclick='addFeat()'>Add</button></div>
     <datalist id='featList'></datalist>
-    <div class='row'>Description: <div id='featDescription' style='width: 160px'></div></div>
-    <div class='row'>Benefits: <div id='featBenefit' style='width: 160px'></div></div>
-    <h2>Choosen Feats</h2>
-    <div id='choosenFeats' style='display: flex; flex-direction: column;'></div>
+    <div id='featOptions' style='display: flex; flex-direction: column;'></div>
+    <h2>Chosen Feats</h2>
+    <div id='chosenFeats' style='display: flex; flex-direction: column;'></div>
 </div>
 <script>
-// character object
+// new character defaults
 var c = {
     "class":"Barbarian",
     "race":"Dwarf",
     "sex":"Male",
     "level":1,
-    "skills":{},
-    "feats":{},
+    "skills":{'rank':{},'fcb':0},
     "featsTaken":0,
     "other":{},
-    "items":{'Inventory':{'Weapons':{}}},
-    'nlDmg':0
+    "items":{'Inventory':{'Weapons':{},'Armor':{},'Ammunition':{}}},
+    'abilities':{'add':{'str':0},'points':{'str':0},'race':{'str':0}},
+    'size':{},
+    'saves':{},
+    'hp':{'fcb':0,'mods':{},'nl':0},
+    'scripts':{'feats':[],'class':[]}
 }
 // store uploaded character in variable c
 const parsed = jsonText => JSON.parse(jsonText);
@@ -101,16 +107,18 @@ function downloadC(){
 
 // post character to page
 function postC(){
-    console.log('not done yet');
+    createTemp();
 }
 
 function store(key){
     c[key] = document.getElementById(key).value;
+    t[key] = c[key];
     updateType();
 }
 
 // initial load > type > ability > skills
 function onload(){
+    createTemp();
     // select boxes
     var i;
     for (i in raceData){
@@ -154,8 +162,17 @@ function onload(){
         race.id = i+"Race";
         race.setAttribute('type','number');
         race.min = 0;
-        race.setAttribute('oninput','updateAbilities()')
+        race.setAttribute('oninput','updateAbilities()');
         row.appendChild(race);
+        var adscoretd = document.createElement('td');
+        var adscore = document.createElement('input');
+        adscore.type = 'number';
+        adscore.value = 0;
+        adscore.min = 0;
+        adscore.id = i+'Add';
+        adscore.setAttribute('oninput','updateAbilities()');
+        adscoretd.appendChild(adscore);
+        row.appendChild(adscoretd);
         var score = document.createElement('td');
         score.id = i+"Score";
         row.appendChild(score);
@@ -173,22 +190,29 @@ function onload(){
 }
 
 function updateType(){
-    c.size = raceData[c.race].Size
-    c.sizeMod = sizeData[c.size].Mod;
-    c.dimensions = sizeData[c.size].Dimensions;
-    document.getElementById('size').innerHTML = c.size;
+    c.level = Number(document.getElementById('level').value);
+    t.level = c.level;
+    c.size.name = raceData[c.race].Size;
+    t.size.name = c.size.name;
+    document.getElementById('size').innerHTML = c.size.name;
     c.speed = raceData[c.race].Speed
     document.getElementById('speed').innerHTML = c.speed;
-    c.lang = raceData[c.race]["Starting Languages"].split(", ")
+    c.lang = raceData[c.race]["Starting Languages"].split(", ");
     document.getElementById('lang').innerHTML = raceData[c.race]["Starting Languages"];
     document.getElementById('sense').innerHTML = raceData[c.race]["Senses"];
     document.getElementById('defense').innerHTML = raceData[c.race]["Defensive Traits"].replace('Â','');
     document.getElementById('offense').innerHTML = raceData[c.race]["Offensive Traits"].replace('Â','');
     document.getElementById('skillBonus').innerHTML = raceData[c.race]["Skill Bonuses"].replace('Â','');
     document.getElementById('special').innerHTML = raceData[c.race]["Spell-Like (Sp) or Supernatural (Su) Abilities"].replace('Â','');
-    c.maxHP = classData[c.class].HitDie;
-    c.hp = classData[c.class].HitDie;
-    document.getElementById('hp').innerHTML = c.hp;
+    c.skills.fcb = Number(document.getElementById('fcSkill').value);
+    t.skills.fcb = c.skills.fcb;
+    c.hp.fcb = Number(document.getElementById('fcHP').value);
+    t.hp.fcb = c.hp.fcb;
+    c.hp.current = t.hp.max().total;
+    document.getElementById('hp').innerHTML = t.hp.max().total;
+    document.getElementById('hp').title = JSON.stringify(t.hp.max());
+    document.getElementById('favoredClassPoints').innerHTML = t.level - t.favoredClassSpent();
+    document.getElementById('addScore').innerHTML = t.abilities.addTotal() - t.abilities.addSpent();
     // add natural attacks
     if (typeof(raceData[c.race].naturalAttacks) == "undefined"){
         c.items.Inventory.Weapons = {};
@@ -200,14 +224,7 @@ function updateType(){
         }
     }
     // how many feats do get
-    c.totalFeats = 1;
-    if (c.class == 'Fighter'){
-        c.totalFeats++;
-    }
-    if (c.race == 'Human'){
-        c.totalFeats++;
-    }
-    document.getElementById('feats').innerHTML = c.totalFeats - c.featsTaken;
+    document.getElementById('feats').innerHTML = t.totalFeats().total - c.featsTaken;
     // custom race points (bonus to 'any'; ie humans)
     for (i in abilities){
         document.getElementById(i+'Race').value = raceData[c.race][i];
@@ -233,26 +250,23 @@ function updateAbilities(){
         var cost = abilityCost[document.getElementById(i+'Points').value];
         document.getElementById(i+'Cost').innerHTML = cost;
         totalCost += cost;
-        var race = Number(document.getElementById(i+'Race').value);
-        totalRace += race;
-        c[i+'Score'] = Number(document.getElementById(i+'Points').value) + race;
-        document.getElementById(i+'Score').innerHTML = c[i+'Score'];
-        c[i+'Mod'] = Math.floor((c[i+'Score']-10)/2);
-        document.getElementById(i+'Mod').innerHTML = c[i+'Mod'];
+        c.abilities.race[i] = Number(document.getElementById(i+'Race').value);
+        t.abilities.race[i] = c.abilities.race[i];
+        totalRace += c.abilities.race[i];
+        c.abilities.points[i] = Number(document.getElementById(i+'Points').value);
+        t.abilities.points[i] = c.abilities.points[i];
+        c.abilities.add[i] = Number(document.getElementById(i+'Add').value);
+        t.abilities.add[i] = c.abilities.add[i];
+        document.getElementById(i+'Score').innerHTML = t.abilities.score(i);
+        document.getElementById(i+'Mod').innerHTML = t.abilities.mod(i);
     }
+    document.getElementById('addScore').innerHTML = t.abilities.addTotal() - t.abilities.addSpent();
     document.getElementById('raceBonus').innerHTML = raceData[c.race].any - totalRace;
     document.getElementById('abilityPoints').innerHTML = startingAbilityPoints - totalCost;
-    c.ranks = classData[c.class].RanksLevel + c.intMod;
-    if (document.getElementById('fcb').value == "+1 HP"){c.hp++}else{c.ranks++};
-    var currentLevel = classData[c.class].level[1];
-    c.fortSave = currentLevel.fortSave + c.conMod;
-    document.getElementById('fortSave').innerHTML = c.fortSave;
-    c.refSave = currentLevel.refSave + c.dexMod;
-    document.getElementById('refSave').innerHTML = c.refSave;
-    c.willSave = currentLevel.willSave + c.wisMod;
-    document.getElementById('willSave').innerHTML = c.willSave;
-    c.bab = currentLevel.bab;
-    document.getElementById('bab').innerHTML = c.bab;
+    document.getElementById('fortSave').innerHTML = t.saves.base('fort');
+    document.getElementById('refSave').innerHTML = t.saves.base('ref');
+    document.getElementById('willSave').innerHTML = t.saves.base('will');
+    document.getElementById('bab').innerHTML = t.attack.bab();
     updateSkills();
     return;
 }
@@ -260,28 +274,18 @@ function updateAbilities(){
 function updateSkills(){
     var totalCost = 0;
     for (i in skillData){
-        c.skills[i] = {};
-        c.skills[i].classBonus = 0;
-        c.skills[i].rank = Number(document.getElementById(i+'Rank').value);
+        c.skills.rank[i] = Number(document.getElementById(i+'Rank').value);
+        t.skills.rank[i] = c.skills.rank[i];
         if (classData[c.class].skills[i] == 1){
             document.getElementById(i+'Skill').setAttribute('style','font-weight: bold; background-color: #ddedff');
-            if(c.skills[i].rank > 0){
-                c.skills[i].classBonus = 3;
-            } else {
-                c.skills[i].classBonus = 0;
-            }
         } else {
             document.getElementById(i+'Skill').setAttribute('style','font-weight: normal; background-color: white;');
-            c.skills[i].classBonus = 0;
         }
-        document.getElementById(i+'Class').innerHTML = c.skills[i].classBonus;
-        c.skills[i].abilityMod = c[skillData[i].ability+'Mod'];
-        document.getElementById(i+'Ability').innerHTML = c.skills[i].abilityMod;
-        var total = c.skills[i].abilityMod + c.skills[i].classBonus + c.skills[i].rank;
-        document.getElementById(i+'Total').innerHTML = total;
-        totalCost += c.skills[i].rank;
+        document.getElementById(i+'Class').innerHTML = t.skills.class(i);
+        document.getElementById(i+'Ability').innerHTML = t.skills.AbilityMod(i);
+        document.getElementById(i+'Total').innerHTML = t.skills.total(i).total;
     }
-    document.getElementById('skillPoints').innerHTML = c.ranks - totalCost;
+    document.getElementById('skillPoints').innerHTML = t.skills.totalRanks().total - t.skills.totalSpent();
     return;
 }
 
@@ -295,10 +299,10 @@ function addSkill(i){
     var rank = document.createElement('input');
     rank.value = 0;
     rank.min = 0;
-    rank.max = c.level;
+    //rank.max = c.level;
     rank.setAttribute('type','number');
     rank.id = i+'Rank';
-    rank.setAttribute('oninput','updateSkills()')
+    rank.setAttribute('oninput','updateSkills()');
     ranktd.appendChild(rank);
     row.appendChild(ranktd);
     var classB = document.createElement('td');
@@ -366,9 +370,9 @@ function rollForWealth(){
 var otherRolls = {
     'Penis Size':function(){
         c.other.penis = {};
-        var length = dice(2,c.dimensions*.75);
+        var length = dice(2,t.size.dim()*.75);
         c.other.penis.length = length;
-        var girth = Math.round(dice(2,c.dimensions)*10/8)/10;
+        var girth = Math.round(dice(2,t.size.dim()*10/8)/10);
         c.other.penis.girth = girth;
         var showGrow = {1:'Shower',2:'Grower'};
         var display = showGrow[dice(1,2)];
@@ -377,7 +381,7 @@ var otherRolls = {
         document.getElementById('otherResult').innerHTML = pretty;
     },'Breast Size':function(){
         c.other.breast = {};
-        var cupNumber = dice(2,5-c.sizeMod/2);
+        var cupNumber = dice(2,5-t.size.mod()/2);
         c.other.breast.cup = otherData.cupChart[cupNumber];
         c.other.breast.band = cupNumber * 2 + 16 + dice(2,6);
         var symmTable = ['Left','Symmetrical','Symmetrical','Right'];
@@ -407,47 +411,83 @@ function rollForOther(){
     document.getElementById('otherTotal').innerHTML = JSON.stringify(c.other);
 }
 
-// feats - I just fucked this all up
+// feats
 function loadFeats(){
-    for (i in featData){
+    for (i in scriptData.feats){
         var o = document.createElement('option');
-        o.innerHTML = featData[i].name;
-        o.value = i;
+        o.innerHTML = i;
         document.getElementById('featList').appendChild(o);
     }
 }
 
 function updateFeats(){
     var featN = document.getElementById('feat').value;
-    document.getElementById('featDescription').innerHTML = featData[featN].description;
-    document.getElementById('featBenefit').innerHTML = featData[featN].benefit;
-}
-
-function addFeat(){
-    var featNumber = document.getElementById('feat').value;
-    c.feats[featNumber] = featData[featNumber];
-    c.featsTaken = 0;
-    for (i in c.feats){
-        c.featsTaken++;
+    var featOpt = scriptData.feats[featN];
+    document.getElementById('featOptions').innerHTML = '';
+    var i;
+    var counter = 1;
+    for (i of featOpt){
+        var row = document.createElement('div');
+        row.style = 'display:flex; justify-content:space-between;'
+        row.innerHTML = i.label;
+        if (i.type == 'select'){
+            var input = document.createElement('select');
+            for (k of i.options){
+                var opt = document.createElement('option');
+                opt.innerHTML = k;
+                input.appendChild(opt);
+            }
+        } else if (i.type == 'number'){
+            var input = document.createElement('input');
+            input.type = 'number';
+        } else if (i.type == 'text'){
+            var input = document.createElement('input');
+            input.type = 'text';
+        }
+        input.id = featN + counter;
+        row.appendChild(input);
+        document.getElementById('featOptions').appendChild(row);
+        counter++;
     }
-    document.getElementById('feats').innerHTML = c.totalFeats - c.featsTaken;
+}
+// will not properly handle same feats taken more than once
+function addFeat(){
+    var feat = document.getElementById('feat').value;
+    var featOpt = scriptData.feats[feat];
+    var arry = [feat];
+    var counter = 1;
+    while (counter <= featOpt.length){
+        var opt = document.getElementById(feat+counter).value;
+        var val;
+        if (isNaN(Number(opt))){val = opt}else{val = Number(opt)};
+        arry.push(val);
+        counter++;
+    }
+    c.scripts.feats.push(arry);
+    t.scripts.feats = c.scripts.feats;
+    // totals
+    c.featsTaken++;
+    t.featsTaken++;
+    document.getElementById('feats').innerHTML = t.totalFeats().total - c.featsTaken;
+    // add to display of all feats
     document.getElementById('feat').value = '';
     var row = document.createElement('div');
-    row.innerHTML = c.feats[featNumber].name;
-    row.title = c.feats[featNumber].benefit;
-    row.id = featNumber + 'Feat'
+    row.innerHTML = arry[0];
+    row.id = feat + 'Feat'
     var remove = document.createElement('button');
-    remove.setAttribute('onclick','removeFeat('+featNumber+')')
+    remove.setAttribute('onclick','removeFeat('+feat+')')
     remove.innerHTML = 'X'
-    remove.id = featNumber + 'Remove'
+    remove.id = feat + 'Remove'
     row.appendChild(remove);
-    document.getElementById('choosenFeats').appendChild(row);
+    document.getElementById('chosenFeats').appendChild(row);
 }
 
 function removeFeat(id){
     removeElement(id+'Remove');
     removeElement(id+'Feat');
     delete c.feats[id];
+    c.featsTaken--;
+    t.featsTaken--;
 }
 
 </script>

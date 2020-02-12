@@ -1,0 +1,501 @@
+<html>
+<head>
+<script src='data.js'></script>
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+th {
+    background-color:bisque;
+}
+.center{justify-content: center; text-align: center;}
+</style>
+</head>
+<body onload='onload()'>
+<div class='panel' style='width: 350px'>
+    <h2>Skills</h2>
+    <h3 onclick='sshow("acrobatics")'>Acrobatics</h3>
+    <table class='panel' id='acrobatics' style='display: none;'>
+        <tr><td>Obstruction:</td><td><input type='range' min='0' max='10' value='0' id='obstruction' oninput='acrobatics("obstruction")'></td><td id='obstructionDesc'></td></tr>
+        <tr><td>Slippery:</td><td><input type='range' min='0' max='10' value='0' id='slippery' oninput='acrobatics("slippery")'></td><td id='slipperyDesc'></td></tr>
+        <tr><td>Steadiness:</td><td><input type='range' min='0' max='15' value='0' id='steadiness' oninput='acrobatics("steadiness")'></td><td id='steadinessDesc'></td></tr>
+        <tr><td colspan="3">Move at Full Speed: <input type='checkbox' id='moveAtFullSpeed' oninput='acrobatics()'></td></tr>
+        <tr><th id='crossNarrowSurface' colspan='3'>Cross Narrow Surface</th></tr>
+        <tr><td>Inches: <input type='number' id='narrowSurfaceInches' oninput='narrowSurface()' value='12'></td><td id='narrowSurfaceDC'>0</td></tr>
+        <tr><th id='threatenedSquare' colspan='3'>Move Through Threatened Square</th></tr>
+        <tr><td>Opp.'s CMB: <input type='number' id='oppCMB' value='0' oninput='threatenedSquare()'></td><td id='threatenedSquareDC'>0</td></tr>
+        <tr><th id='jumping' colspan='3'>Jumping</th></tr>
+        <tr><td>Vertical Distance</td><td><input type='number' id='vertFeet' value='0' oninput='jump()'>Feet</td></tr>
+        <tr><td>Horizontal Distance</td><td><input type='number' id='horzFeet' value='0' oninput='jump()'>Feet</td></tr>
+        <tr><td>Running Start</td><td><input type='checkbox' id='runningStart' checked oninput='jump()'>>= 10'</td></tr>
+        <tr><td>Movement Speed</td><td><input type='number' step='5' value='30' id='movementSpeed' oninput='jump()'></td></tr>
+        <tr><td>Jump DC:</td><td id='jumpResult'></td></tr>
+        <tr><th id='falling' colspan='3'>Falling</th></tr>
+    </table>
+    <h3 onclick='sshow("appraise")'>Appraise</h3>
+    <div id='appraise' class='panel' style='display: none;'>
+        <div class='row'>Actual Value:<input type='number' id='itemValue' value='100' style='width: 60px'></div>
+        <div class='row'>Rarity: <input type='range' min='0' max='10' value='0' id='appraiseRarity' oninput='appraiseRarity()'><span id='appraiseRarityDesc' style='width: 50px'></span></div>
+        <div class='row'><div>DC <span id='exactMagicalDC'>25</span>:</div><span id='exactMagical'>Exact Value & Magical Properties</span></div>
+        <div class='row'><div>DC <span id='exactDC'>20</span>:</div><span>Exact Value</span></div>
+        <div class='row'>Player Roll: <input type='number' value='19' id='appraiseRoll'></div>
+        <div class='row'><button onclick='appraise()'>Calculate</button>Appraised Value: <span id='appraisedValue'></span></div>
+    </div>
+    <h3 onclick='sshow("bluff")'>Bluff</h3>
+    <div class='panel' id='bluff' style='display: none;'>
+        <div class='row'>Believability:<input type='range' min='-10' max='20' value='0' id='believe' oninput='bluff()'><span id='believeDesc' style='width: 60px;'></span></div>
+        <div class='row'>Target's Sense Motive:<input type='number' id='oppSenseMotive' oninput='bluff()'></div>
+        <div class='row'>DC: <span id='bluffDC'></span></div>
+    </div>
+    <h3 onclick='sshow("climb")'>Climb</h3>
+    <div class='panel' id='climb' style='display: none;'>
+        <div style='justify-content: center; text-align: center;'>Surface:</div>
+        <input type='range' min='0' max='30' value='0' id='surface' oninput='climb()'>
+        <div id='surfaceDesc' style='height: 18px; justify-content: center; text-align: center;'></div>
+        <div class='row'>Wall Angle:<input type='range' min='0' max='180' step='18' id='wallAngle' value='0' oninput='climb()'><span id='wallAngleDesc' style='width: 90px'></span></div>
+        <div class='row'>Slippery:<input type='range' min='0' max='10' id='wallSlippery' value='0' oninput='climb()'><span id='wallSlipperyDesc' style='width: 90px'></span></div>
+        <div class='row'>Wall Height:<input type='number' min='0' value='0' id='wallHeight' oninput='document.getElementById("climbProgress").max=document.getElementById("wallHeight").value'></div>
+        <div class='row'>
+            <div><select id='speedType'><option>Movement</option><option>Climb</option></select> Speed:
+            <input type='number' min='0' step='5' value='30' id='wallSpeed'></div>
+            <div><input type='checkbox' id='climbFast' oninput='climb()'>Climb Fast</div>
+        </div>
+        <div class='row'>
+            <button onclick='addClimb()'>Success</button>
+            <div>DC: <span id='climbDC'>0</span>/<span id='climbOkayDC' title='no progress, avoid falling'>0</span></div>
+            <button onclick='resetClimb()'>Fail</button>
+        </div>
+        <progress id='climbProgress' min='0' value='0' style='width: 100%'></progress>
+    </div>
+    <h3><a href='https://www.d20pfsrd.com/skills/craft' target='__blank'>Craft</a></h3>
+    <h3 onclick='sshow("diplomacy")'>Diplomacy</h3>
+    <div class='panel' id='diplomacy' style='display: none;'>
+        <div class='row'>Attitude:<input type='range' min='0' max='25' step='5' id='dipAttitude' value='15' oninput='diplomacy()'><span id='dipAttitudeDesc' style='width: 60px;'></span></div>
+        <div class='row' style='height:72px;'>Request:<input type='range' min='-5' max='20' step='5' id='dipRequest' value='0' oninput='diplomacy()'><span id='dipRequestDesc' style='width: 60px;'></span></div>
+        <div style='justify-content: center; text-align: center;'>DC: <span id='diplomacyDC'></span></div>
+    </div>
+    <h3 onclick='sshow("disableDevice")'>Disable Device</h3>
+    <div class='panel' id='disableDevice' style='display: none;'>
+        <div style='justify-content: center; text-align: center;'>Device Complexity</div>
+        <input type='range' min='10' max='40' value='0' step='5' id='deviceComplexity' oninput='disableDevice()'>
+        <div id='deviceComplexityDesc' style='height: 18px; justify-content: center; text-align: center;'></div>
+        <div class='row'><div><input type='checkbox' id='disableTools' oninput='disableDevice()' checked>Use Tools</div><div><input type='checkbox' id='noTrace' oninput='disableDevice()'>Leave No Trace</div></div>
+        <div style='justify-content: center; text-align: center;' id='disableDC'>10</div>
+    </div>
+    <h3 onclick='sshow("disguise")'>Disguise</h3>
+    <div class='panel' id='disguise' style='display: none;'>
+        <div class='center'>Change Your:</div>
+        <div class='row'>
+            <div><input type='checkbox' id='disguiseGender' oninput='disguise()'>Gender</div>
+            <div><input type='checkbox' id='disguiseRace' oninput='disguise()'>Race</div>
+            <div><input type='checkbox' id='disguiseSize' oninput='disguise()'>Size</div>
+        </div>
+        <div class='row'><span style='width: 98px'>Player Age:</span><input type='range' min='1' max='5' id='playerAge' oninput='disguise()'><div id='playerAgeDesc' style='width: 60px'></div></div>
+        <div class='row'><span style='width: 98px'>Disguise Age:</span><input type='range' min='1' max='5' id='disguiseAge' oninput='disguise()'><div id='disguiseAgeDesc' style='width: 60px'></div></div>
+        <div class='row'>Familiarity:<input type='range' min='0' max='10' step='2' value='0' id='familiarity' oninput='disguise()'><div id='familiarityDesc' style='width:60px'></div></div>
+        <div class='row'><div>Opp. Perception:<input type='number' id='oppPerception' oninput='disguise()'></div><div>DC:<span id='disguiseDC'></span></div></div>
+    </div>
+    <h3 onclick='sshow("escapeArtist")'>Escape Artist</h3>
+    <div class='panel' id='escapeArtist' style='display: none;'>
+        <div class='row'><div>Opp.'s CMB:<input type='number' id='escapeOppCmb' oninput='escapeArtist()'></div><div>Opp.'s CMD:<input type='number' id='escapeOppCmd' oninput='escapeArtist()'></div></div>
+        <div class='row'><div title='1 minute'>Rope/Bindings: <span id='ropeBindingDC'></span></div><div title='1 round. Includes  net, animate rope spell, command plants, control plants, or entangle.'>Net, etc.: 20</div></div>
+        <div class='row'><div title='1 round'>Snare Spell: 23</div><div title='1 minute'>Manacles: 30</div></div>
+        <div class='row'><div title='1 standard action. Also for reduce pinned to grappled.'>Grapple: <span id='escapeGrappleDC'></span></div><div title='1 minute'>Masterwork Manacles: 35</div></div>
+        <div class='center' title='1 minute or more'>Move through tight space: 30</div>
+    </div>
+    <h3 onclick='sshow("fly")'>Fly</h3>
+    <div class='panel' id='fly' style='display: none;'>
+        <div class='row'><div title='less than half-speed'>Fly Slow: 10</div><div>Hover: 15</div></div>
+        <div class='row'><div title='greater than 45°, costs 5 feet of movement'>Sharp Turn: 15</div><div title='costs 10 feet of movement'>Do a 180: 20</div></div>
+        <div class='center' title='greater than 45°'>Steep Incline: 20</div>
+    </div>
+    <h3 onclick='sshow("handleAnimal")'>Handle Animal</h3>
+    <div class='panel' id='handleAnimal' style='display: none;'>
+        <div class='center'><input type='checkbox' id='animalWounded' oninput='handleAnimal()'>Wounded</div>
+        <div class='row'><div title='This task involves commanding an animal to perform a task or trick that it knows.'>Handle: <span id='handleAnimalDC'>10</span></div><div title='To push an animal means to get it to perform a task or trick that it doesn’t know but is physically capable of performing. This category also covers making an animal perform a forced march or forcing it to hustle for more than 1 hour between sleep cycles.'>Push: <span id='pushAnimal'>25</span></div></div>
+        <div class='row'>Teach<select id='teachAnimal' oninput='handleAnimal()'></select><div id='teachAnimalDC'>20/6 weeks</div></div>
+    </div>
+    <h3 onclick='sshow("heal")'>Heal</h3>
+    <div class='panel' id='heal' style='display: none;'>
+        <div class='row' title='You usually use first aid to save a dying character. If a character has negative hit points and is losing hit points (at the rate of 1 per round, 1 per hour, or 1 per day), you can make him stable. A stable character regains no hit points but stops losing them. First aid also stops a character from losing hit points due to effects that cause bleed.'>First Aid<div>15</div>Standard Action</div>
+        <div class='row' title='The patient recovers hit points or ability score points (lost to ability damage) at twice the normal rate. You can tend as many as six patients at a time. You need a few items and supplies (bandages, salves, and so on) that are easy to come by in settled lands. Giving long-term care counts as light activity for the healer. You cannot give long-term care to yourself.'>Long-term Care<div>15</div>8 hrs</div>
+        <div class='row' title='Removes speed penalties.'>Caltrops<div>15</div>10 min.</div>
+        <div class='row' title='When treating deadly wounds, you can restore hit points to a damaged creature. Treating deadly wounds restores 1 hit point per level of the creature. If you exceed the DC by 5 or more, add your Wisdom modifier (if positive) to this amount. A creature can only benefit from its deadly wounds being treated within 24 hours of being injured and never more than once per day.'>
+            Deadly Wounds
+            <div>Medkit Uses:<span id='medKitUsesDesc'></span><input type='range' min='0' max='2' id='medKitUses' value='0' oninput='heal()'></div>
+            <div><span id='healDeadlyWound'>16</span>/1 hr.</div>
+        </div>
+        <div class='row' title='To treat poison means to tend to a single character who has been poisoned and who is going to take more damage from the poison (or suffer some other effect). Every time the poisoned character makes a saving throw against the poison, you make a Heal check. If your Heal check exceeds the DC of the poison, the character receives a +4 competence bonus on his saving throw against the poison.'>Poison<div>Poison DC</div>Standard Action</div>
+        <div class='row' title='To treat a disease means to tend to a single diseased character. Every time the diseased character makes a saving throw against disease effects, you make a Heal check. If your Heal check exceeds the DC of the disease, the character receives a +4 competence bonus on his saving throw against the disease.'>Disease<div>Disease DC</div>10 minutes</div>
+    </div>
+    <h3 onclick='sshow("intimidate")'>Intimidate</h3>
+    <div class='panel' id='intimidate'>
+        
+    </div>
+</div>
+<div class='panel'>
+    <input class='row' type="file" id='cFile'>
+    <div class='row'><button onclick='downloadC()'>Save Data</button><a id="download">Download</a></div>
+    <h2>Time</h2>
+    <div class='center' id='currentTime'></div>
+    <div style='display:flex; flex-direction: row;'>
+        <!--Quick Add-->
+        <div class='panel'>
+            <h3>Quick Add</h3>
+            <div><button onclick='addTime(1)'>Round</button><button onclick='addTime(5)'>30s</button></div>
+            <div><button onclick='addTime(10)'>1 Minute</button><button onclick='addTime(200)'>20 Minutes</button></div>
+            <div><button onclick='addTime(600)'>1 Hour</button><button onclick='addTime(1200)'>2 Hours</button></div>
+            <div><button onclick='addTime(3600)'>6 Hours</button><button onclick='addTime(4800)'>8 Hours</button></div>
+            <div><button onclick='addTime(14400)'>24 Hours</button><button onclick='addTime(100800)'>1 Week</button></div>
+            <button onclick='nextMorning()'>Next Morning</button>
+        </div>
+        <!--Timers-->
+        <div class='panel'>
+            <h3>Timers</h3>
+            <div><input type='text' id='timerLabel'><button onclick='addTimer()'>Add</button></div>
+            <div id='timers'></div>
+        </div>
+    </div>
+</div>
+<script>
+function sshow(section){
+    var s = document.getElementById(section);
+    if (s.style.display == 'none'){
+        s.setAttribute('style','display: flex');
+    } else {
+        s.setAttribute('style','display: none');
+    }
+}
+var skillDescriptions = {
+    'crossNarrowSurface':'While you are using Acrobatics in this way, you are considered flat-footed and lose your Dexterity bonus to your AC (if any). If you take damage while using Acrobatics, you must immediately make another Acrobatics check at the same DC to avoid falling or being knocked prone.',
+    'jumping':'If you fail this check by 4 or less, you can attempt a DC 20 Reflex save to grab hold of the other side after having missed the jump. If you fail by 5 or more, you fail to make the jump and fall (or land prone, in the case of a vertical jump).',
+    'falling':"When you deliberately fall any distance, even as a result of a missed jump, a DC 15 Acrobatics skill check allows you to ignore the first 10 feet fallen, although you still end up prone if you take damage from a fall.",
+    'exactMagical':"You also determine if the item has magic properties, although this success does not grant knowledge of the magic item’s abilities.",
+}
+function onload(){
+    var i;
+    for (i in rangeDescriptions){rangeDescription(i)};
+    for (i in skillDescriptions){document.getElementById(i).title = skillDescriptions[i]};
+    acrobatics();
+    loadHandleAnimal();
+}
+var rangeDescriptions = {
+    'obstruction':{'0':['None',''],'2':['Light','gravel, sand'],'5':['Severe','cavern, rubble']},
+    'slippery':{'0':['Not','slippery'],'2':['Slightly','wet'],'5':['Severely','icy']},
+    'wallSlippery':{'0':['Not','slippery'],'5':['Slightly','wet'],'10':['Severely','icy']},
+    'steadiness':{'0':['Steady',''],'2':['Slightly Unsteady','boat in rough water'],'5':['Mildly Unsteady','boat in a storm'],'10':['Severely Unsteady','earthquake']},
+    'appraiseRarity':{'0':['Common',''],'2':['Uncommon',''],'5':['Rare','']},
+    'believe':{'0':['Believable',''],'5':['Unlikely',''],'10':['Far-fetched',''],'20':['Impossible',''],'-5':['Easy','The target wants to believe you.']},
+    'surface':{
+        '0':['Slope','A slope too steep to walk up, or a knotted rope with a wall to brace against.'],
+        '5':['Rope','A rope with a wall to brace against, or a knotted rope, or a rope affected by the rope trick spell.'],
+        '10':['Easy Wall','A surface with ledges to hold on to and stand on, such as a very rough wall or a ship’s rigging.'],
+        '15':['Wall/Tree','Any surface with adequate handholds and footholds (natural or artificial), such as a very rough natural rock surface or a tree, or an unknotted rope, or pulling yourself up when dangling by your hands.'],
+        '20':['Difficult Wall','An uneven surface with some narrow handholds and footholds, such as a typical wall in a dungeon.'],
+        '25':['Flat Wall','A rough surface, such as a natural rock wall or a brick wall; Typical lower-story wall.'],
+        '30':['Diffiult Flat Wall','An overhang or ceiling with handholds but no footholds, or a typical city wall']
+    },
+    'wallAngle':{'0':['Flat Wall',''],'90':['Corner',''],'180':['Opposing Walls','']},
+    'dipAttitude':{'0':['Helpful',''],'10':['Friendly',''],'15':['Indifferent',''],'20':['Unfriendly',''],'25':['Hostile','']},
+    'dipRequest':{'-5':['Simple Advice',''],'0':['Detailed Advice/Simple Aid',''],'5':['Unimportant Secret/Complicated Aid',''],'10':['Dangerous Aid',''],'15':['Aid Resulting in Punishment','']},
+    'deviceComplexity':{'10':['Simple Device',''],'15':['Tricky Device',''],'20':['Difficult Device/Simple Lock',''],'25':['Extremely Complex Device/Average Lock',''],'30':['Good Lock',''],'40':['Amazing Lock','']},
+    'playerAge':{'1':['Young',''],'2':['Adulthood',''],'3':['Middle Age',''],'4':['Old',''],'5':['Venerable','']},
+    'disguiseAge':{'1':['Young',''],'2':['Adulthood',''],'3':['Middle Age',''],'4':['Old',''],'5':['Venerable','']},
+    'familiarity':{'0':['Never Encountered',''],'2':['Vaguely Familiar',''],'4':['Recognize',''],'6':['Acquaintances',''],'8':['Close Friends',''],'10':['Intimate','']},
+    'medKitUses':{'0':['0',''],'1':['1',''],'2':['2','']}
+}
+function rangeDescription(item){
+    var arry = rangeDescriptions[item][document.getElementById(item).value];
+    if (typeof(arry) == 'undefined'){arry = ['','']};
+    document.getElementById(item+'Desc').innerHTML = arry[0];
+    document.getElementById(item+'Desc').title = arry[1];
+}
+// acrobatics
+function acrobatics(item){
+    if(typeof(item) != 'undefined'){rangeDescription(item)};
+    narrowSurface();
+    threatenedSquare();
+    jump();
+}
+function narrowSurface(){
+    var dc = {
+        'obstruction':Number(document.getElementById('obstruction').value),
+        'slippery':Number(document.getElementById('slippery').value),
+        'steadiness':Number(document.getElementById('steadiness').value),
+    };
+    if (document.getElementById('moveAtFullSpeed').checked){dc.fullSpeed = 5};
+    var ns = {'0':20,'2':15,'6':10,'11':5,'36':0};
+    var i;
+    var inches = Number(document.getElementById('narrowSurfaceInches').value);
+    for (i in ns){if (inches > i){dc.width = ns[i]}else{break}};
+    var total = 0;
+    for (i in dc){total+=dc[i]};
+    if (total < 10){total = 0};
+    document.getElementById('narrowSurfaceDC').innerHTML = total;
+    document.getElementById('narrowSurfaceDC').title = JSON.stringify(dc);
+}
+function threatenedSquare(){
+    var dc = {
+        'obstruction':Number(document.getElementById('obstruction').value),
+        'slippery':Number(document.getElementById('slippery').value),
+        'steadiness':Number(document.getElementById('steadiness').value),
+        'oppCMB':Number(document.getElementById('oppCMB').value)
+    };
+    if (document.getElementById('moveAtFullSpeed').checked){dc.fullSpeed = 10};
+    var total = 0;
+    var i;
+    for (i in dc){total+=dc[i]};
+    document.getElementById('threatenedSquareDC').innerHTML = total;
+    document.getElementById('threatenedSquareDC').title = JSON.stringify(dc);
+}
+function jump(){
+    var dc = {
+        'horz':Number(document.getElementById('horzFeet').value),
+        'speed':-(Number(document.getElementById('movementSpeed').value)-30)*0.4,
+        'obstruction':Number(document.getElementById('obstruction').value),
+        'slippery':Number(document.getElementById('slippery').value),
+        'steadiness':Number(document.getElementById('steadiness').value)
+    }
+    var rawVert = Number(document.getElementById('vertFeet').value);
+    if (rawVert > 0){dc.vert = rawVert*4}else{dc.vert = Math.floor(rawVert/4)};
+    var i;
+    var total = 0;
+    for (i in dc){total+=dc[i]};
+    if (document.getElementById('runningStart').checked){dc.runningStart = 1}else{dc.runningStart = 2};
+    total *= dc.runningStart;
+    document.getElementById('jumpResult').innerHTML = total;
+    document.getElementById('jumpResult').title = JSON.stringify(dc);
+}
+// appraise
+function appraiseRarity(){
+    document.getElementById('exactMagicalDC').innerHTML = 25 + Number(document.getElementById('appraiseRarity').value);
+    document.getElementById('exactDC').innerHTML = 20 + Number(document.getElementById('appraiseRarity').value);
+    rangeDescription("appraiseRarity");
+}
+function appraise(){
+    var roll = Number(document.getElementById('appraiseRoll').value);
+    var actualValue = Number(document.getElementById('itemValue').value);
+    var diff = 20 + Number(document.getElementById('appraiseRarity').value) - roll;
+    var inaccuracy = [0,2,6,12,20,30,42,56,72,90,110,132,156,182,210,240,272,306,342,380,420,462,506,552,600,650,702,756,812,869,927,986]
+    var diffPercent = inaccuracy[diff]/100;
+    var valueDiff = Math.round(diffPercent*actualValue);
+    var low;
+    if (actualValue-valueDiff < 0){low = 0}else{low=actualValue-valueDiff};
+    var appraisedValue = randBetween(low,actualValue+valueDiff);
+    document.getElementById('appraisedValue').innerHTML = appraisedValue;
+    document.getElementById('appraisedValue').title = "+/- " + valueDiff;
+}
+// bluff
+function bluff(){
+    rangeDescription("believe");
+    document.getElementById('bluffDC').innerHTML = Number(document.getElementById('believe').value)+Number(document.getElementById('oppSenseMotive').value);
+}
+// climb
+function climb(){
+    rangeDescription('surface');
+    rangeDescription('wallAngle');
+    rangeDescription('wallSlippery');
+    var dc = {'surface':Number(document.getElementById('surface').value),'slippery':Number(document.getElementById('wallSlippery').value)};
+    var angle = -Number(document.getElementById('wallAngle').value);
+    dc.angle = angle/18;
+    if (document.getElementById('climbFast').checked){dc.fast = 5};
+    var i;
+    var total = 0;
+    for (i in dc){total+=dc[i]};
+    document.getElementById('climbDC').innerHTML = total;
+    document.getElementById('climbDC').title = JSON.stringify(dc);
+    document.getElementById('climbOkayDC').innerHTML = total-4;
+}
+var climbProgress = 0;
+function addClimb(){
+    var speed = Number(document.getElementById('wallSpeed').value)
+    if (document.getElementById('speedType').value == 'Movement'){speed /= 4};
+    if (document.getElementById('climbFast').checked){speed *= 2};
+    climbProgress += speed;
+    document.getElementById('climbProgress').value = climbProgress;
+    document.getElementById('climbProgress').title = climbProgress + " / " + (Number(document.getElementById('wallHeight').value) - climbProgress);
+}
+function resetClimb(){
+    climbProgress = 0;
+    document.getElementById('climbProgress').value = 0;
+}
+// diplomacy
+function diplomacy(){
+    rangeDescription('dipAttitude');
+    rangeDescription('dipRequest');
+    var dc = Number(document.getElementById('dipAttitude').value) + Number(document.getElementById('dipRequest').value);
+    document.getElementById('diplomacyDC').innerHTML = dc;
+}
+// disable device
+function disableDevice(){
+    rangeDescription('deviceComplexity');
+    var dc = {'complexity':Number(document.getElementById('deviceComplexity').value)};
+    if (!document.getElementById('disableTools').checked){dc.tools = 10};
+    if (document.getElementById('noTrace').checked){dc.noTrace = 5};
+    var i;
+    var total = 0;
+    for (i in dc){total+=dc[i]};
+    document.getElementById('disableDC').innerHTML = total;
+}
+// disguise
+function disguise(){
+    rangeDescription('playerAge');
+    rangeDescription('disguiseAge');
+    rangeDescription('familiarity');
+    var dc = {
+        'perception':Number(document.getElementById('oppPerception').value),
+        'familiarity':Number(document.getElementById('familiarity').value)
+    }
+    var ageDiff = -Math.abs(Number(document.getElementById('playerAge').value) - Number(document.getElementById('disguiseAge').value))
+    dc.age = ageDiff * 2;
+    if (document.getElementById('disguiseGender').checked){dc.gender = -2};
+    if (document.getElementById('disguiseRace').checked){dc.race = -2};
+    if (document.getElementById('disguiseSize').checked){dc.size = -10};
+    var total = objectSum(dc,true);
+    document.getElementById('disguiseDC').innerHTML = total.total
+    document.getElementById('disguiseDC').title = JSON.stringify(total);
+}
+// escape artist
+function escapeArtist(){
+    document.getElementById('ropeBindingDC').innerHTML = Number(document.getElementById('escapeOppCmb').value) + 20;
+    document.getElementById('escapeGrappleDC').innerHTML = document.getElementById('escapeOppCmd').value;
+}
+// handle animal
+var lessons = {
+    'Combat Training':{'dc':20,'time':6,'desc':'An animal trained to bear a rider into combat knows the tricks attack, come, defend, down, guard, and heel. The new general purpose and tricks completely replace the animal’s previous purpose and any tricks it once knew.'},
+    'Fighting':{'dc':20,'time':3,'desc':'An animal trained to engage in combat knows the tricks attack, down, and stay.'},
+    'Guarding':{'dc':20,'time':4,'desc':'An animal trained to guard knows the tricks attack, defend, down, and guard.'},
+    'Heavy Labor':{'dc':15,'time':2,'desc':'An animal trained for heavy labor knows the tricks come and work.'},
+    'Hunting':{'dc':20,'time':6,'desc':'An animal trained for hunting knows the tricks attack, down, fetch, heel, seek, and track.'},
+    'Performance':{'dc':15,'time':5,'desc':'An animal trained for performance knows the tricks come, fetch, heel, perform, and stay.'},
+    'Riding':{'dc':15,'time':3,'desc':'An animal trained to bear a rider knows the tricks come, heel, and stay.'},
+    'Air Support':{'dc':20,'time':20,'desc':'An animal trained in air support knows the attack, bombard, and deliver tricks.'},
+    'Burglar':{'dc':25,'time':3,'desc':'An animal trained as a burglar knows the come, fetch, maneuver (steal), seek, and sneak tricks. You can order it to steal a specific item you point out.'},
+    'Liberator':{'dc':25,'time':3,'desc':'An animal trained in liberating knows the break out, flee, and get help tricks.'},
+    'Servant':{'dc':20,'time':3,'desc':'An animal trained as a servant knows the deliver, exclusive, and serve tricks.'},
+    '--':{'dc':0,'time':0,'desc':'This actually is just a placeholder to devide purposes and tricks.'},
+    'Aid':{'dc':20,'desc':'The animal can use the aid another action to aid a specific ally in combat by attacking a specific foe the ally is fighting. You point to a particular creature that you wish the animal to aid, and you point to another that you want it to make an attack roll against, and it will comply if able.'},
+    'Attack':{'dc':20,'desc':'The animal attacks apparent enemies. You may point to a particular creature that you wish the animal to attack, and it will comply if able. Normally, an animal will attack only humanoids, monstrous humanoids, giants, or other animals. Teaching an animal to attack all creatures (including such unnatural creatures as undead and aberrations) counts as two tricks.'},
+
+}
+function loadHandleAnimal(){
+    var i;
+    function appendOption(name){
+        var option = document.createElement('option');
+        option.innerHTML = name;
+        document.getElementById('teachAnimal').appendChild(option);
+    }
+    for (i in lessons){appendOption(i)};
+}
+function handleAnimal(){
+    var lesson = lessons[document.getElementById('teachAnimal').value];
+    document.getElementById('teachAnimalDC').innerHTML = lesson.dc+'/'+lesson.time+' weeks';
+    document.getElementById('teachAnimalDC').title = lesson.desc;
+}
+// heal
+function heal(){
+    rangeDescription('medKitUses');
+    document.getElementById('healDeadlyWound').innerHTML = {'0':16,'1':18,'2':20}[document.getElementById('medKitUses').value];
+}
+// time
+var timeValues = {'year':5184000,'month':432000,'day':14400,'hour':600,'minute':10,'second':1/6}
+function splitTime(rounds){
+    var time = {};
+    for (i in timeValues){
+        time[i] = Math.floor(rounds/timeValues[i]);
+        rounds = rounds%timeValues[i];
+    }
+    return time;
+}
+function prettyTime(rounds,dumb,military){
+    var time = splitTime(rounds);
+    var txt = leadingZeros(time.year,4)+'-'+leadingZeros(time.month+dumb,2)+'-'+leadingZeros(time.day+dumb,2)+' ';
+    if (military){
+        time.suffix = '';
+    } else {
+        if (time.hour > 12){
+            time.hour-=12;
+            time.suffix = ' PM';
+        } else {
+            time.suffix = ' AM';
+        }
+    }
+    txt += leadingZeros(time.hour,2)+':'+leadingZeros(time.minute,2)+':'+leadingZeros(time.second,2)+time.suffix;
+    return txt;
+}
+function addTime(rounds){
+    gm.time.current+=rounds;
+    updateCurrentTime();
+}
+function updateCurrentTime(){
+    document.getElementById('currentTime').innerHTML = prettyTime(gm.time.current,1,settings.militaryTime);
+    var i;
+    for (i in gm.time.timers){
+        var timeDiff = gm.time.current - gm.time.timers[i];
+        document.getElementById(i+'Timer').innerHTML = prettyTime(timeDiff,0,true);
+    }
+}
+function nextMorning(){
+    var time = splitTime(gm.time.current);
+    time.day++;
+    time.hour = settings.morningTime;
+    time.minute = 0;
+    time.second = 0;
+    var rounds = 0;
+    for (i in timeValues){rounds += time[i] * timeValues[i]};
+    gm.time.current = rounds;
+    updateCurrentTime();
+}
+function addTimer(){
+    var label = document.getElementById('timerLabel').value;
+    gm.time.timers[label] = Number(gm.time.current);
+    var row = document.createElement('div');
+    row.innerHTML = label + ' ';
+    row.id = label + 'TimerRow'
+    var result = document.createElement('span');
+    result.id = label + 'Timer';
+    result.innerHTML = prettyTime(0,0,true);
+    row.appendChild(result);
+    var lremove = document.createElement('button');
+    lremove.innerHTML = 'x';
+    lremove.setAttribute('onclick','removeTimer("'+label+'")');
+    row.appendChild(lremove);
+    document.getElementById('timers').appendChild(row);
+    document.getElementById('timerLabel').value = '';
+}
+function removeTimer(label){
+    document.getElementById(label+'TimerRow').innerHTML = '';
+    document.getElementById(label+'TimerRow').remove();
+    delete gm.time.timers[label];
+}
+// general functions
+var gm = {
+    'time':{
+        'current':0,
+        'timers':{}
+    }
+}
+// store uploaded data in variable gm
+const parsed = jsonText => JSON.parse(jsonText);
+const fr = new FileReader();
+function handleFileSelect (evt){
+    fr.readAsText(evt.target.files[0])
+}
+fr.onload = e => {
+    gm = parsed(e.target.result);
+    postC();
+}
+document.getElementById('cFile').addEventListener('change', handleFileSelect, false);
+
+// download character
+function downloadC(){
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(gm));
+    var dElement = document.getElementById('download');
+    dElement.setAttribute("href", dataStr);
+    dElement.setAttribute("download", gm.name+".json");
+}
+// things to do after data upload
+function postC(){
+    updateCurrentTime();
+}
+</script>
+</body>
+</html>

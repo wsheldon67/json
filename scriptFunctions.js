@@ -58,12 +58,25 @@ var scriptFunctions = {
         document.getElementById('Disable DeviceMod').title = JSON.stringify(t.skills.total('Disable Device'));
     }
 },'trapSense':{
-    'load':function(){
-        var txt = '+1 bonus on Reflex saves made to avoid traps and a +1 dodge bonus to AC against attacks made by traps.';
+    'load':function(bonus){
+        var txt = '+'+bonus+' bonus on Reflex saves made to avoid traps and a +1 dodge bonus to AC against attacks made by traps.';
         scriptText('Trap Sense',txt);
-        copySave('ref','refTrap','Reflex Traps');
-        t.saves.mods.refTrap.trapSense = 1;
-        // <div class='row'>Touch AC: <span id='touchAC'></span></div>
+        // reflex save to traps
+        var rrow = document.createElement('tr');
+        var label = document.createElement('td');
+        label.innerHTML = 'Ref. Traps';
+        rrow.appendChild(label);
+        var buttontd = document.createElement('td');
+        var button = document.createElement('button');
+        button.innerHTML = 'Roll';
+        button.setAttribute('onclick','scriptFunctions.trapSense.reflex('+bonus+')');
+        buttontd.appendChild(button);
+        rrow.appendChild(buttontd);
+        var rresult = document.createElement('td');
+        rresult.id = 'refTrapSave';
+        rrow.appendChild(rresult);
+        document.getElementById('savingThrowContainer').appendChild(rrow);
+        // ac to traps
         var row = document.createElement('div');
         row.setAttribute('style','display:flex; justify-content: space-between;');
         row.innerHTML = 'AC to traps:';
@@ -73,10 +86,16 @@ var scriptFunctions = {
         document.getElementById('acContainer').appendChild(row);
         t.ac.funcs.trapSense = function(){
             var trapAC = Number(document.getElementById('ac').innerHTML);
-            if (t.ac.dexAllowed){trapAC++};
+            if (t.ac.dexAllowed){trapAC+=bonus};
             document.getElementById('trapAC').innerHTML = trapAC;
         }
         t.ac.funcs.trapSense();
+    },'reflex':function(bonus){
+        var o = t.saves.roll('ref');
+        o.trapSense = bonus;
+        o.total += bonus;
+        document.getElementById('refTrapSave').innerHTML = o.total;
+        document.getElementById('refTrapSave').title = JSON.stringify(o);
     }
 },'evasion':{
     'load':function(){
@@ -133,6 +152,11 @@ var scriptFunctions = {
                 delete t.attack.mods.weaponFocus;
             }
         }
+    }
+},'cigar':{
+    'load':function(){
+        t.abilities.mods.cha.cigar = 2;
+        scriptText('Cigar','+20,000 to any one roll.  A permanent aroma of fancy smoke lingers on you, which gives you a +2 to any charisma-based check until you wash the smell off.  The smell never goes away otherwise.')
     }
 }
 }

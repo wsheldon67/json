@@ -74,8 +74,8 @@
         <div class='row' style='display: none;'>Range: <div id='natural3Range'></div></div>
         <h2 id='armorHeader'>Armor</h2>
         <select id='armor' oninput='updateAC()'><option>None</option></select>
-        <h2 id='sheildHeader'>Shield</h2>
-        <select id='sheild' oninput='updateAC()'><option>None</option></select>
+        <h2 id='shieldHeader'>Shield</h2>
+        <select id='shield' oninput='updateAC()'><option>None</option></select>
     </div>
     <div class='panel'>
         <h2>Standard Attack</h2>
@@ -143,7 +143,7 @@
         </div>
         <h2>Conditions</h2>
         <div id='conditions'>
-
+            <div title = "You get a +2 flanking bonus if your opponent is threatened by another enemy character or creature on its opposite border or opposite corner."><input type='checkbox' oninput='conditionScripts.flanking()' id='flanking'>Flanking</div>
         </div>
     </div>
 </div>
@@ -281,20 +281,21 @@ function addOtherRolls(){
 function addInfo(){
     // hp
     document.getElementById('name').innerHTML = c.name;
-    document.getElementById('regularHpBar').value = c.hp;
-    document.getElementById('regularHpBar').max = c.maxHP;
-    document.getElementById('nlHpBar').value = c.nlDmg;
-    document.getElementById('nlHpBar').max = c.maxHP;
-    document.getElementById('nlHpBar').title = c.nlDmg;
-    document.getElementById('currentHP').innerHTML = c.hp;
-    document.getElementById('maxHP').innerHTML = c.maxHP;
+    document.getElementById('regularHpBar').value = c.hp.current;
+    document.getElementById('regularHpBar').max = t.hp.max().total;
+    document.getElementById('nlHpBar').value = t.hp.nl;
+    document.getElementById('nlHpBar').max = t.hp.max().total;
+    document.getElementById('nlHpBar').title = t.hp.nl;
+    document.getElementById('currentHP').innerHTML = c.hp.current;
+    document.getElementById('maxHP').innerHTML = t.hp.max().total;
     // other
-    var basicInfo = ['class','race','sex','age','bab'];
+    var basicInfo = ['class','race','sex','age'];
     var i;
     for (i of basicInfo){document.getElementById(i+'y').innerHTML = c[i]};
     document.getElementById('weighty').innerHTML = t.prettyWeight();
     document.getElementById('heighty').innerHTML = t.prettyHeight();
     document.getElementById('wealthy').innerHTML = t.prettyWealth();
+    document.getElementById('baby').innerHTML = t.attack.bab();
     for (i in t.other){
         var row = document.createElement('div');
         row.innerHTML = i + ":";
@@ -434,9 +435,10 @@ function displayInventory(){
                 var item = document.createElement('div');
                 var nitemObject = c.items[i][k][j];
                 item.innerHTML = nitemObject.quantity +" - "+ nitemObject.name;
-                if(typeof(nitemObject.description == 'undefined')){item.title = JSON.stringify(nitemObject)}else{item.title = nitemObject.description};
+                if(typeof(nitemObject.description) == 'undefined'){item.title = JSON.stringify(nitemObject)}else{item.title = nitemObject.description};
                 row.appendChild(item);
                 var groupy = document.createElement('div');
+                groupy.style = 'display: flex; flex-direction: row'
                 var input = document.createElement('input');
                 input.type = 'number';
                 input.value = -1;
@@ -511,7 +513,7 @@ function updateMainWeapon(){
     }
 }
 function displayPrimaryAttacks(){
-    switch(Math.floor((c.bab-1)/5)){
+    switch(Math.floor((t.attack.bab()-1)/5)){
         case 3: document.getElementById('primary4').setAttribute('style','display: flex;');
         case 2: document.getElementById('primary3').setAttribute('style','display: flex;');
         case 1: document.getElementById('primary2').setAttribute('style','display: flex;');
@@ -551,11 +553,11 @@ function crit(body){
 }
 function addHP(){
     var hp = Number(document.getElementById('regularHpInput').value);
-    c.hp += hp;
-    t.hp += hp;
-    if(c.hp > c.maxHP){c.hp = c.maxHP};
-    document.getElementById('currentHP').innerHTML = c.hp;
-    document.getElementById('regularHpBar').value = c.hp;
+    c.hp.current += hp;
+    t.hp.current += hp;
+    if(c.hp.current > c.hp.max().total){c.hp = t.hp.max().total};
+    document.getElementById('currentHP').innerHTML = c.hp.current;
+    document.getElementById('regularHpBar').value = c.hp.current;
 }
 function addNlDmg(){
     var nlDmg = Number(document.getElementById('nlDmgInput').value);
@@ -566,7 +568,7 @@ function addNlDmg(){
 }
 function updateAC(){
     document.getElementById('armorHeader').title = JSON.stringify(t.ac.currentArmor());
-    document.getElementById('sheildHeader').title = JSON.stringify(t.ac.currentSheild());
+    document.getElementById('shieldHeader').title = JSON.stringify(t.ac.currentShield());
     document.getElementById('ac').innerHTML = t.ac.total().total;
     document.getElementById('ac').title = JSON.stringify(t.ac.total());
     document.getElementById('touchAC').innerHTML = t.ac.touch().total;
@@ -577,8 +579,8 @@ function addArmor(){
     for (i in c.items.Inventory.Armor){
         var option = document.createElement('option');
         option.innerHTML = i;
-        if (c.items.Inventory.Armor[i].subCat == 'Sheild'){
-            document.getElementById('sheild').appendChild(option);
+        if (c.items.Inventory.Armor[i].subCat == 'shield'){
+            document.getElementById('shield').appendChild(option);
         } else {
             document.getElementById('armor').appendChild(option);
         }
@@ -589,7 +591,33 @@ function addArmor(){
 // feats
 function activateScripts(){
     var i;
-    for (i of c.scripts){
+    for (i of c.scripts.feats){
+        switch(i.length){
+            case 1:
+                scriptFunctions[i[0]].load();
+                break;
+            case 2:
+                scriptFunctions[i[0]].load(i[1]);
+                break;
+            case 3:
+                scriptFunctions[i[0]].load(i[1],i[2]);
+                break;
+        }
+    }
+    for (i of t.scripts.class()){
+        switch(i.length){
+            case 1:
+                scriptFunctions[i[0]].load();
+                break;
+            case 2:
+                scriptFunctions[i[0]].load(i[1]);
+                break;
+            case 3:
+                scriptFunctions[i[0]].load(i[1],i[2]);
+                break;
+        }
+    }
+    for (i of t.scripts.race()){
         switch(i.length){
             case 1:
                 scriptFunctions[i[0]].load();
@@ -610,6 +638,16 @@ function addWealth(){
     c.wealth += toAdd;
     t.wealth += toAdd;
     document.getElementById('wealthy').innerHTML = t.prettyWealth();
+}
+var conditionScripts = {
+    // this is technically wrong, flanking only applies to melee.  but it's how we've been playing
+    'flanking':function(){
+        if (document.getElementById('flanking').checked){
+            t.attack.mods.flanking = 2;
+        } else {
+            delete t.attack.mods.flanking;
+        }
+    }
 }
 </script>
 </body>
