@@ -85,18 +85,28 @@ t.abilities.roll=function(ab){
 t.saves.mods = {'fort':{},'ref':{},'will':{}};
 t.saves.abilities = {'fort':'con','ref':'dex','will':'wis'};
 t.saves.base=function(save){return classData[t.class].level[t.level][save+'Save']};
-t.saves.roll=function(save){
+t.saves.total=function(save){
     var components = {
         'base':this.base(save),
         'ability':t.abilities.mod(this.abilities[save]),
-        'd20':dice(1,20)
     }
+    var i;
     for(i in this.mods[save]){components[i] = this.mods[save][i]};
     var total = 0;
     for (i in components){total += components[i]};
     components.total = total;
     return components;
 };
+t.saves.roll=function(save){
+    var components = this.total(save);
+    delete components.total;
+    components.d20 = dice(1,20);
+    var i;
+    var total = 0;
+    for (i in components){total += components[i]};
+    components.total = total;
+    return components;
+}
 // AC
 t.items.Inventory.Armor.None={'bonus':0,'dexBonus':80,'acPenalty':0,'speed30':30,'speed20':20};
 t.ac={};
@@ -153,11 +163,10 @@ t.items.Inventory.Weapons.None = {'isNone':true,'sDmg':'1d2','mDmg':'1d3'};
 t.items.Inventory.Ammunition.None = {'isNone':true};
 t.attack.currentWeapon=function(body){return t.items.Inventory.Weapons[document.getElementById(body+'Weapon').value]};
 t.attack.currentAmmo=function(body){return t.items.Inventory.Ammunition[document.getElementById(body+'Ammo').value]};
-t.attack.roll=function(body){
+t.attack.total=function(body){
     var components = {
         'bab':t.attack.bab(),
         'size':-t.size.mod(),
-        'd20':dice(1,20)
     }
     if (this.currentWeapon(body).subCat == "Ranged"){
         components.dex = t.abilities.mod('dex');
@@ -180,6 +189,12 @@ t.attack.roll=function(body){
     components.total = total;
     if (components.d20 >= this.currentWeapon(body).mincrit){components.crit=true};
     return components;
+};
+t.attack.roll=function(body){
+    var components = this.total(body);
+    components.d20 = dice(1,20);
+    components.total += components.d20;
+    return components;
 }
 // dmg
 t.dmg = {}
@@ -187,6 +202,7 @@ t.dmg.mods = {'mainHand':{},'offHand':{},'all':{}}
 t.dmg.mults = {'mainHand':{'crit':1},'offHand':{'crit':1},'all':{}}
 t.dmg.funcs = {'mainHand':{},'offHand':{},'all':{}}
 t.dmg.precision = {'mainHand':{},'offHand':{},'all':{}}
+t.dmg.txt = {'mainHand':{},'offHand':{},'all':{}}
 t.dmg.roll=function(body){
     var cw = t.attack.currentWeapon(body);
     var components = {
@@ -222,6 +238,15 @@ t.dmg.roll=function(body){
         components[i] = this.precision.all[i];
     }
     components.total = total;
+    return components;
+}
+t.dmg.total=function(body){
+    var components = this.roll(body);
+    components.total -= components.weapon;
+    components.weapon = t.attack.currentWeapon(body)[t.size.dmg()];
+    var i;
+    for (i in this.txt.all){components[i] = this.txt.all[i]};
+    for (i in this.txt[body]){components[i] = this.txt[body][i]};
     return components;
 }
 // other
@@ -278,11 +303,17 @@ t.checkPenalty=function(){return Math.min(t.load().checkPenalty,t.ac.currentArmo
 t.totalSpeed=function(){return Math.min(t.speed, t.ac.currentArmor()['speed'+t.speed], t.load().speed())};
 t.loadLimit=function(load){if(t.quad){return loadData[t.abilities.score.str][load]*sizeData[t.size.name].quad}else{return loadData[t.abilities.score.str][load]*sizeData[t.size.name].carry}}
 // hp
+t.hp.manual = []
 t.hp.max=function(){
-    var components = {
-        'fcb':this.fcb,
-        'class':classData[t.class].HitDie*t.level
-    };
+    var components = {'fcb':this.fcb};
+    if (t.settings.hp == "roll"){
+        var i;
+        components.rolls = 0;
+        for (i of t.hp.manual){components.rolls+=i};
+        components.class = classData[t.class].HitDie;
+    } else {
+        components.class = classData[t.class].HitDie*t.level
+    }
     var total = 0;
     var i;
     for (i in this.mods){components[i] = this.mods[i]};

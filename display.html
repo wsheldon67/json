@@ -1,0 +1,604 @@
+<html>
+<head>
+<script src='data.js'></script>
+<script src='items.js'></script>
+<script src='scriptFunctions.js'></script>
+<script src='character.js'></script>
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+
+</style>
+</head>
+<body onload='onload()'>
+<div class='panel' style='width: 160px'>
+    <input class='row' type="file" id='cFile'>
+    <h2>Panels</h2>
+    <div class='row'><button onclick='show("skills")' id='skillsShow'>Skills</button></div>
+    <div class='row'><button onclick='show("otherRolls")' id='otherRollsShow'>Other Rolls</button></div>
+    <div class='row'><button onclick='show("combat")' id='combatShow'>Combat</button></div>
+    <div class='row'><button onclick='show("inventory")' id='inventoryShow'>Inventory</button></div>
+    <div class='row'><button onclick='show("notes")' id='notesShow'>Notes</button></div>
+    <div class='row'><button onclick='show("info")' id='infoShow'>Character Info</button></div>
+    <h2>Dice Roller</h2>
+    <div class='row'><input type='number' min='0' value='1' id='diceQ'>d<input type='number' min='0' value='20' id='diceD'></div>
+    <button onclick='diceRoller()'>Roll</button>
+    <div id='diceResult' style='text-align: center; font-size: 2em'></div>
+    <h2>Save</h2>
+    <div class='row'><button onclick='downloadC()'>Save Character</button><a id="download">Download</a></div>
+</div>
+<div class='panel' id='skills'>
+    <h2>Skill Checks</h2>
+    <table id='skillTable'>
+        <tr><th>Skill</th><th>Mod</th></tr>
+    </table>
+</div>
+<div class='panel' id='otherRolls'>
+    <h2>Ability Rolls</h2>
+    <table id='abilityRolls'></table>
+    <h2>Saving Throws</h2>
+    <table id='savingThrowContainer'>
+        <tr><td>Fortitude</td><td id='fortSave'></td></tr>
+        <tr><td>Reflex</td><td id='refSave'></td></tr>
+        <tr><td>Will</td><td id='willSave'></td></tr>
+    </table>
+</div>
+<div class='section' id='combat'>
+    <div class='panel'>
+        <h2>Weapons</h2>
+        <h3>Main Attack</h3>
+        <select id='mainHandWeapon' oninput='updateWeapon("mainHand")'><option>None</option><option>Crossbow, light</option></select>
+        <select id='mainHandAmmo' style='display: none;'><option>None</option></select>
+        <div class='row'>Dmg: <div id='mainHandDmg'></div></div>
+        <div class='row'>Crit: <div id='mainHandCrit'></div></div>
+        <div class='row' style='display: none;'>Range: <div id='mainHandRange'></div></div>
+        <h3>Off Hand</h3>
+        <select id='offHandWeapon' oninput='updateWeapon("offHand")'><option>None</option></select>
+        <select id='offHandAmmo' style='display: none;'><option>None</option></select>
+        <div class='row'>Dmg: <div id='offHandDmg'></div></div>
+        <div class='row'>Crit: <div id='offHandCrit'></div></div>
+        <div class='row' style='display: none;'>Range: <div id='offHandRange'></div></div>
+        <h3>Natural Attack</h3>
+        <select id='natural1Weapon' oninput='updateWeapon("natural1")'><option>None</option></select>
+        <div class='row'>Dmg: <div id='natural1Dmg'></div></div>
+        <div class='row'>Crit: <div id='natural1Crit'></div></div>
+        <div class='row' style='display: none;'>Range: <div id='natural1Range'></div></div>
+        <h3>Natural Attack</h3>
+        <select id='natural2Weapon' oninput='updateWeapon("natural2")'><option>None</option></select>
+        <div class='row'>Dmg: <div id='natural2Dmg'></div></div>
+        <div class='row'>Crit: <div id='natural2Crit'></div></div>
+        <div class='row' style='display: none;'>Range: <div id='natural2Range'></div></div>
+        <h3>Natural Attack</h3>
+        <select id='natural3Weapon' oninput='updateWeapon("natural3")'><option>None</option></select>
+        <div class='row'>Dmg: <div id='natural3Dmg'></div></div>
+        <div class='row'>Crit: <div id='natural3Crit'></div></div>
+        <div class='row' style='display: none;'>Range: <div id='natural3Range'></div></div>
+        <h2 id='armorHeader'>Armor</h2>
+        <select id='armor' oninput='updateAC()'><option>None</option></select>
+        <h2 id='shieldHeader'>Shield</h2>
+        <select id='shield' oninput='updateAC()'><option>None</option></select>
+    </div>
+    <div class='panel'>
+        <h2>Standard Attack</h2>
+        <div id='mainHand'></div>
+        <div class='row'>Attack:<div id='mainHandAttackRoll'></div></div>
+        <div class='row' id='mainHandDmgRoll'>Damage</div>
+        <div class='row' id='mainHandNat'></div>
+        <div class='row' title='Re-roll attack to confirm crit.' style='display: none;' id='mainHandCritConfirm'>Crit! <button onclick = 'crit("mainHand")'>Confirm</button></div>
+        <h2>Full Round Attack</h2>
+        <div class='panel' id='primary2' style='display: none;'>
+            <h3>2nd Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='primary3' style='display: none;'>
+            <h3>3rd Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='primary4' style='display: none;'>
+            <h3>4th Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='offHand' style='display: none;'>
+            <h3>Secondary Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='natural1' style='display: none;'>
+            <h3>Natural Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='natural2' style='display: none;'>
+            <h3>Natural Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+        <div class='panel' id='natural3' style='display: none;'>
+            <h3>Natural Attack</h3>
+            <div class='row'>Attack: <button>Roll</button><div></div></div>
+            <div class='row'>Damage: <button>Roll</button><div></div></div>
+            <div class='row' title='Re-roll attack to confirm crit.' style='display: none;'>Crit! <button>Confirm</button></div>
+        </div>
+    </div>
+    <div class='panel'>
+        <h2>Initiative</h2>
+        <div id='initiative' style='text-align: center; font-size: 2em'></div>
+        <h2><span id='currentHP'></span>/<span id='maxHP'></span> HP</h2>
+        <table>
+            <tr><td>Regular</td><td><progress id='regularHpBar' style='width: 80px'></progress></td><td><input type='number' id='regularHpInput'></td><td><button onclick='addHP()'>Add</button></td></tr>
+            <tr><td>Non-Lethal</td><td><progress id='nlHpBar' style='width: 80px'></progress></td><td><input type='number' id='nlDmgInput'></td><td><button onclick='addNlDmg()'>Add</button></td></tr>
+        </table>
+        <div id='acContainer'>
+            <h2>AC: <span id='ac'></span></h2>
+            <div class='row'>Touch AC: <span id='touchAC'></span></div>
+        </div>
+        <h2>Conditions</h2>
+        <div id='conditions'>
+            <div title = "You get a +2 flanking bonus if your opponent is threatened by another enemy character or creature on its opposite border or opposite corner."><input type='checkbox' oninput='conditionScripts.flanking()' id='flanking'>Flanking</div>
+        </div>
+    </div>
+</div>
+<div class='panel' id='inventory'>
+    <h2>Store</h2>
+    <div class='row'>Category: <select id='itemCat' oninput='updateItemSubCat()'></select></div>
+    <div class='row'>Sub: <select id='itemSubCat' oninput='updateItems()'></select></div>
+    <div class='row'><input type='number' value='1' min='1' id='itemQuantity'><input list='itemList' id='selectedItem' oninput='updateItem()'></div>
+    <datalist id='itemList'></datalist>
+    <div class='row'>Location: <input list='itemLocations' id='itemLocation' value='Inventory'></div>
+    <datalist id='itemLocations'></datalist>
+    <button onclick='addItem()'>Add</button>
+    <div id='itemDisplay'></div>
+    <div class='row'><input type='text' id='customAttribute'><button onclick="addItemAttribute()">Add Attribute</button></div>
+    <div id='inventoryDisplay'></div>
+</div>
+<div class='panel' id='notes'>
+
+</div>
+<div class='panel' id='info' style='width: 240px'>
+    <h2 id='name'></h2>
+    <div id='classy' style='text-align: center;'></div>
+    <div id='racey' style='text-align: center;'></div>
+    <h3>Physical</h3>
+    <div class='row'>Sex: <div id='sexy'></div></div>
+    <div class='row'>Age: <div id='agey'></div></div>
+    <div class='row'>Height: <div id='heighty'></div></div>
+    <div class='row'>Weight: <div id='weighty'></div></div>
+    <h3>Other</h3>
+    <div class='row'>Base Attack: <div id='baby'></div></div>
+    <div class='row'>Wealth: 
+        <div>
+        <input type='number' id='wealthAdd'>
+        <select id='wealthType'><option>gp</option><option>sp</option><option>cp</option></select>
+        <button onclick='addWealth()'>Add</button>
+        </div>
+        <div id='wealthy'></div>
+    </div>
+    <div class='panel' id='customInfo'></div>
+    <h2>Mods</h2>
+    <div class='panel' id='mods'></div>
+</div>
+<script>
+var itemObject = {};
+
+// store uploaded character in variable c
+const parsed = jsonText => JSON.parse(jsonText);
+const fr = new FileReader();
+function handleFileSelect (evt){
+    fr.readAsText(evt.target.files[0])
+}
+fr.onload = e => {
+    c = parsed(e.target.result);
+    postC();
+}
+document.getElementById('cFile').addEventListener('change', handleFileSelect, false);
+
+// download character
+function downloadC(){
+    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(c));
+    var dElement = document.getElementById('download');
+    dElement.setAttribute("href", dataStr);
+    dElement.setAttribute("download", c.name+".json");
+}
+
+// load page
+function onload(){
+    // add item categories
+    for (i in itemData){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('itemCat').appendChild(o);
+    }
+    updateItemSubCat();
+}
+
+// post character to page
+function postC(){
+    createTemp();
+    addSkills();
+    addOtherRolls();
+    addInfo();
+    displayInventory();
+    displayPrimaryAttacks();
+    addArmor();
+    updateAC();
+    activateScripts();
+}
+function addSkills(){
+    var i;
+    for (i in c.skills.rank){
+        var row = document.createElement('tr');
+        var skill = document.createElement('td');
+        skill.innerHTML = i;
+        row.appendChild(skill);
+        var mod = document.createElement('td');
+        mod.innerHTML = t.skills.total(i).total;
+        mod.title = JSON.stringify(t.skills.total(i));
+        mod.id = i + 'Mod';
+        row.appendChild(mod);
+        document.getElementById('skillTable').appendChild(row);
+    }
+}
+function addOtherRolls(){
+    var i;
+    for (i in abilities){
+        var row = document.createElement('tr');
+        var label = document.createElement('td');
+        label.innerHTML = i;
+        label.title = 'Mod: '+t.abilities.mod(i);
+        row.appendChild(label);
+        var score = document.createElement('td');
+        score.innerHTML = t.abilities.score(i);
+        row.appendChild(score);
+        var mod = document.createElement('td');
+        mod.innerHTML = t.abilities.mod(i);
+        row.appendChild(mod);
+        document.getElementById('abilityRolls').appendChild(row);
+    }
+    for (i of ['fort','ref','will']){
+        document.getElementById(i+'Save').innerHTML = t.saves.total(i).total;
+        document.getElementById(i+'Save').title = JSON.stringify(t.saves.total(i));
+    }
+    document.getElementById('initiative').innerHTML = t.abilities.mod('dex');
+}
+function addInfo(){
+    // hp
+    document.getElementById('name').innerHTML = c.name;
+    document.getElementById('regularHpBar').value = c.hp.current;
+    document.getElementById('regularHpBar').max = t.hp.max().total;
+    document.getElementById('nlHpBar').value = t.hp.nl;
+    document.getElementById('nlHpBar').max = t.hp.max().total;
+    document.getElementById('nlHpBar').title = t.hp.nl;
+    document.getElementById('currentHP').innerHTML = c.hp.current;
+    document.getElementById('maxHP').innerHTML = t.hp.max().total;
+    // other
+    var basicInfo = ['class','race','sex','age'];
+    var i;
+    for (i of basicInfo){document.getElementById(i+'y').innerHTML = c[i]};
+    document.getElementById('weighty').innerHTML = t.prettyWeight();
+    document.getElementById('heighty').innerHTML = t.prettyHeight();
+    document.getElementById('wealthy').innerHTML = t.prettyWealth();
+    document.getElementById('baby').innerHTML = t.attack.bab();
+    for (i in t.other){
+        var row = document.createElement('div');
+        row.innerHTML = i + ":";
+        row.style = 'margin-bottom: 5px'
+        var data = document.createElement('div');
+        data.innerHTML = JSON.stringify(t.other[i]);
+        row.appendChild(data);
+        document.getElementById('customInfo').appendChild(row);
+    }
+}
+
+// rolls
+function diceRoller(){
+    var q = Number(document.getElementById('diceQ').value);
+    var d = Number(document.getElementById('diceD').value);
+    document.getElementById('diceResult').innerHTML = dice(q,d);
+}
+
+// Inventory
+function updateItemSubCat(){
+    var subCat = document.getElementById('itemSubCat');
+    while (subCat.hasChildNodes()){
+        subCat.removeChild(subCat.firstChild);
+    }
+    for (i in itemData[document.getElementById('itemCat').value]){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('itemSubCat').appendChild(o);
+    }
+    updateItems();
+}
+function updateItems(){
+    var itemList = document.getElementById('itemList');
+    while (itemList.hasChildNodes()){
+        itemList.removeChild(itemList.firstChild);
+    }
+    var subCat = itemData[document.getElementById('itemCat').value][document.getElementById('itemSubCat').value];
+    for (i in subCat){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('itemList').appendChild(o);
+    }
+}
+function updateItem(){
+    var cat = document.getElementById('itemCat').value;
+    var subCat = document.getElementById('itemSubCat').value;
+    var itemName = document.getElementById('selectedItem').value;
+    var itemLocation = document.getElementById('itemLocation').value;
+    var itemQuant = Number(document.getElementById('itemQuantity').value);
+    itemObject = itemData[cat][subCat][itemName];
+    document.getElementById('itemDisplay').innerHTML = '';
+    for (i in itemObject){
+        var row = document.createElement('div');
+        row.innerHTML = i+": ";
+        row.setAttribute('style','display: flex; justify-content: space-between');
+        var value = document.createElement('textarea');
+        value.rows = "1";
+        value.value = itemObject[i];
+        value.id = i+'Item'
+        value.setAttribute('oninput','updateItemInfo()')
+        row.appendChild(value);
+        document.getElementById('itemDisplay').appendChild(row);
+    }
+}
+function addItemAttribute(){
+    var row = document.createElement('div');
+    var key = document.getElementById('customAttribute').value;
+    row.innerHTML = key + ": ";
+    row.setAttribute('style','display: flex; justify-content: space-between');
+    var value = document.createElement('textarea');
+    value.rows = '1';
+    value.id = key+'Item'
+    value.setAttribute('oninput','updateItemInfo()');
+    row.appendChild(value);
+    document.getElementById('itemDisplay').appendChild(row);
+    if (typeof(itemObject) == "undefined"){itemObject = {}};
+    itemObject[key] = '';
+}
+function updateItemInfo(){
+    for (i in itemObject){
+        if (isNaN(Number(document.getElementById(i+'Item').value))){itemObject[i] = document.getElementById(i+'Item').value}
+        else {itemObject[i] = Number(document.getElementById(i+'Item').value)};
+    }
+}
+function addItem(){
+    // add to c.items
+    var cat = document.getElementById('itemCat').value;
+    var subCat = document.getElementById('itemSubCat').value;
+    var itemName = document.getElementById('selectedItem').value;
+    var itemLocation = document.getElementById('itemLocation').value;
+    var itemQuant = Number(document.getElementById('itemQuantity').value);
+    if (typeof(c.items[itemLocation]) == "undefined"){c.items[itemLocation] = {}};
+    if (typeof(c.items[itemLocation][cat]) == "undefined"){c.items[itemLocation][cat] = {}};
+    itemObject.subCat = subCat;
+    itemObject.name = itemName;
+    itemObject.quantity = itemQuant;
+    if (typeof(c.items[itemLocation][cat][itemName]) == "undefined"){
+        c.items[itemLocation][cat][itemName] = itemObject;
+    } else {
+        c.items[itemLocation][cat][itemName].quantity += itemQuant;
+    }
+    document.getElementById('selectedItem').value = '';
+    displayInventory();
+}
+function displayInventory(){
+    document.getElementById('itemLocations').innerHTML = '';
+    document.getElementById('inventoryDisplay').innerHTML = '';
+    for (i in c.items){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('itemLocations').appendChild(o);
+        var header = document.createElement('h2');
+        header.innerHTML = i + ' - ' + Math.round(t.totalWeight(i)) + ' lbs';
+        document.getElementById('inventoryDisplay').appendChild(header);
+        for (k in c.items[i]){
+            var cat = document.createElement('h3');
+            cat.innerHTML = k;
+            document.getElementById('inventoryDisplay').appendChild(cat);
+            for (j in c.items[i][k]){
+                var row = document.createElement('div');
+                row.setAttribute('style','display: flex; justify-content: space-between;')
+                var item = document.createElement('div');
+                var nitemObject = c.items[i][k][j];
+                item.innerHTML = nitemObject.quantity +" - "+ nitemObject.name;
+                if(typeof(nitemObject.description) == 'undefined'){item.title = JSON.stringify(nitemObject)}else{item.title = nitemObject.description};
+                row.appendChild(item);
+                var groupy = document.createElement('div');
+                groupy.style = 'display: flex; flex-direction: row'
+                var input = document.createElement('input');
+                input.type = 'number';
+                input.value = -1;
+                input.id = nitemObject.name+'Quant';
+                groupy.appendChild(input);
+                var button = document.createElement('button');
+                button.setAttribute('onclick','editItem("'+i+'","'+k+'","'+nitemObject.name+'")');
+                button.innerHTML = 'Add';
+                groupy.appendChild(button);
+                row.appendChild(groupy);
+                document.getElementById('inventoryDisplay').appendChild(row);
+            }
+        }
+    }
+    updateAvailableWeapons();
+}
+function editItem(location,cat,item){
+    var quant = Number(document.getElementById(item+'Quant').value);
+    c.items[location][cat][item].quantity += quant;
+    if (c.items[location][cat][item].quantity <= 0){
+        delete c.items[location][cat][item];
+    }
+    displayInventory();
+}
+
+// combat
+function updateAvailableWeapons(){
+    function reset(elem){
+        document.getElementById(elem).innerHTML = '<option>None</option>'
+    }
+    reset('mainHandWeapon');
+    reset('offHandWeapon');
+    reset('natural1Weapon');
+    reset('natural2Weapon');
+    reset('natural3Weapon');
+    var weapons = c.items.Inventory.Weapons;
+    for (i in weapons){
+        var o = document.createElement('option');
+        o.innerHTML = i;
+        document.getElementById('mainHandWeapon').appendChild(o.cloneNode(true));
+        if (weapons[i].subCat != 'Two-Handed Melee'){document.getElementById('offHandWeapon').appendChild(o.cloneNode(true))};
+        if (weapons[i].subCat == 'Natural' && !(weapons[i].hand)){
+            document.getElementById('natural1Weapon').appendChild(o.cloneNode(true));
+            document.getElementById('natural2Weapon').appendChild(o.cloneNode(true));
+            document.getElementById('natural3Weapon').appendChild(o.cloneNode(true));
+        }
+    }
+}
+function updateWeapon(body){
+    var o = t.attack.currentWeapon(body);
+    if (body == 'mainHand'){updateMainWeapon()};
+    document.getElementById(body+'Dmg').innerHTML = o[t.size.dmg()];
+    document.getElementById(body+'Crit').innerHTML = o.mincrit + " / x" + o.crit;
+    if (o.subCat == "Ranged"){
+        document.getElementById(body+'Range').innerHTML = o.range;
+        document.getElementById(body+'Range').parentNode.setAttribute('style','display: flex;');
+    } else {
+        document.getElementById(body+'Range').parentNode.setAttribute('style','display: none;');
+    }
+    if (!o.isNone){
+        document.getElementById(body).setAttribute('style','display: flex;');
+    } else {
+        document.getElementById(body).setAttribute('style','display: none;');
+    }
+    document.getElementById(body+'AttackRoll').innerHTML = t.attack.total(body).total;
+    document.getElementById(body + 'AttackRoll').title = JSON.stringify(t.attack.total(body));
+    document.getElementById(body + 'DmgRoll').title = JSON.stringify(t.dmg.total(body));
+}
+function updateMainWeapon(){
+    if (t.attack.currentWeapon('mainHand').subCat == 'Two-Handed Melee'){
+        document.getElementById('offHandWeapon').value = 'None';
+        document.getElementById('offHandWeapon').setAttribute('disabled','disabled');
+    } else {
+        document.getElementById('offHandWeapon').removeAttribute('disabled');
+    }
+}
+function displayPrimaryAttacks(){
+    switch(Math.floor((t.attack.bab()-1)/5)){
+        case 3: document.getElementById('primary4').setAttribute('style','display: flex;');
+        case 2: document.getElementById('primary3').setAttribute('style','display: flex;');
+        case 1: document.getElementById('primary2').setAttribute('style','display: flex;');
+    }
+}
+function crit(body){
+    t.dmg.mults[body].crit = t.attack.currentWeapon(body).crit;
+    document.getElementById(body+'CritConfirm').setAttribute('style','display: none;');
+}
+function addHP(){
+    var hp = Number(document.getElementById('regularHpInput').value);
+    c.hp.current += hp;
+    t.hp.current += hp;
+    if(c.hp.current > c.hp.max().total){c.hp = t.hp.max().total};
+    document.getElementById('currentHP').innerHTML = c.hp.current;
+    document.getElementById('regularHpBar').value = c.hp.current;
+}
+function addNlDmg(){
+    var nlDmg = Number(document.getElementById('nlDmgInput').value);
+    c.nlDmg += nlDmg;
+    t.nlDmg += nlDmg;
+    document.getElementById('nlHpBar').value = c.nlDmg;
+    document.getElementById('nlHpBar').title = c.nlDmg;
+}
+function updateAC(){
+    document.getElementById('armorHeader').title = JSON.stringify(t.ac.currentArmor());
+    document.getElementById('shieldHeader').title = JSON.stringify(t.ac.currentShield());
+    document.getElementById('ac').innerHTML = t.ac.total().total;
+    document.getElementById('ac').title = JSON.stringify(t.ac.total());
+    document.getElementById('touchAC').innerHTML = t.ac.touch().total;
+    document.getElementById('touchAC').title = JSON.stringify(t.ac.touch());
+}
+function addArmor(){
+    var i;
+    for (i in c.items.Inventory.Armor){
+        var option = document.createElement('option');
+        option.innerHTML = i;
+        if (c.items.Inventory.Armor[i].subCat == 'shield'){
+            document.getElementById('shield').appendChild(option);
+        } else {
+            document.getElementById('armor').appendChild(option);
+        }
+    }
+    updateAC();
+}
+
+// feats
+function activateScripts(){
+    var i;
+    for (i of c.scripts.feats){
+        switch(i.length){
+            case 1:
+                scriptFunctions[i[0]].display();
+                break;
+            case 2:
+                scriptFunctions[i[0]].display(i[1]);
+                break;
+            case 3:
+                scriptFunctions[i[0]].display(i[1],i[2]);
+                break;
+        }
+    }
+    for (i of t.scripts.class()){
+        switch(i.length){
+            case 1:
+                scriptFunctions[i[0]].display();
+                break;
+            case 2:
+                scriptFunctions[i[0]].display(i[1]);
+                break;
+            case 3:
+                scriptFunctions[i[0]].display(i[1],i[2]);
+                break;
+        }
+    }
+    for (i of t.scripts.race()){
+        switch(i.length){
+            case 1:
+                scriptFunctions[i[0]].display();
+                break;
+            case 2:
+                scriptFunctions[i[0]].display(i[1]);
+                break;
+            case 3:
+                scriptFunctions[i[0]].display(i[1],i[2]);
+                break;
+        }
+    }
+}
+function addWealth(){
+    var num = Number(document.getElementById('wealthAdd').value);
+    var type = document.getElementById('wealthType').value;
+    var toAdd = num * {'gp':100,'sp':10,'cp':1}[type];
+    c.wealth += toAdd;
+    t.wealth += toAdd;
+    document.getElementById('wealthy').innerHTML = t.prettyWealth();
+}
+var conditionScripts = {
+    // this is technically wrong, flanking only applies to melee.  but it's how we've been playing
+    'flanking':function(){
+        if (document.getElementById('flanking').checked){
+            t.attack.mods.flanking = 2;
+        } else {
+            delete t.attack.mods.flanking;
+        }
+    }
+}
+</script>
+</body>
+</html>
