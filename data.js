@@ -443,12 +443,12 @@ var sizeData = {
     'ColossalLong':{'Mod':-8,'Fly':-8,'Stealth':-16,'Space':30,'Reach':20,'Dimensions':128,'Weight':250000,'carry':16,'quad':24}
 }
 var abilities = {
-    'str':{'name':'Strength'},
-    'dex':{'name':'Dexterity'},
-    'con':{'name':'Constitution'},
-    'int':{'name':'Intelligence'},
-    'wis':{'name':'Wisdom'},
-    'cha':{'name':'Charisma'}
+    'str':{'name':'Strength','cap':'Str'},
+    'dex':{'name':'Dexterity','cap':'Dex'},
+    'con':{'name':'Constitution','cap':'Con'},
+    'int':{'name':'Intelligence','cap':'Int'},
+    'wis':{'name':'Wisdom','cap':'Wis'},
+    'cha':{'name':'Charisma','cap':'Cha'}
 }
 var abilityCost = {
     7:-4,

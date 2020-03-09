@@ -24,7 +24,7 @@
     <button onclick='diceRoller()'>Roll</button>
     <div id='diceResult' style='text-align: center; font-size: 2em'></div>
     <h2>Save</h2>
-    <div class='row'><button onclick='downloadC()'>Save Character</button><a id="download">Download</a></div>
+    <div class='row'><button onclick='downloadC(c)'>Save Character</button><a id="download">Download</a></div>
 </div>
 <div class='panel' id='skills'>
     <h2>Skill Checks</h2>
@@ -201,7 +201,7 @@ fr.onload = e => {
 document.getElementById('cFile').addEventListener('change', handleFileSelect, false);
 
 // download character
-function downloadC(){
+function downloadC(c){
     var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(c));
     var dElement = document.getElementById('download');
     dElement.setAttribute("href", dataStr);
@@ -244,6 +244,13 @@ function addSkills(){
         mod.id = i + 'Mod';
         row.appendChild(mod);
         document.getElementById('skillTable').appendChild(row);
+    }
+}
+function updateSkills(){
+    var i;
+    for (i in t.skills.rank){
+        document.getElementById(i+'Mod').innerHTML = t.skills.total(i).total;
+        document.getElementById(i+'Mod').title = JSON.stringify(t.skills.total(i));
     }
 }
 function addOtherRolls(){
@@ -523,6 +530,7 @@ function updateAC(){
     document.getElementById('ac').title = JSON.stringify(t.ac.total());
     document.getElementById('touchAC').innerHTML = t.ac.touch().total;
     document.getElementById('touchAC').title = JSON.stringify(t.ac.touch());
+    updateSkills();
 }
 function addArmor(){
     var i;
@@ -600,5 +608,6 @@ var conditionScripts = {
     }
 }
 </script>
+<script src='mythweavers.js'></script>
 </body>
 </html>

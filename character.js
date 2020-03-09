@@ -150,6 +150,20 @@ t.ac.touch=function(){
     components.total = total;
     return components;
 }
+t.ac.cmd=function(){
+    var components = {
+        'base':10,
+        'bab':t.attack.bab(),
+        'str':t.abilities.mod('str'),
+        'dex':t.abilities.mod('dex'),
+        'size':-t.size.mod()
+    }
+    var i;
+    var total = 0;
+    for (i in components){total+=components[i]};
+    components.total = total;
+    return components;
+}
 // size
 t.size.mod=function(){return sizeData[this.name].Mod};
 t.size.dmg=function(){return {'Small':'sDmg','Medium':'mDmg'}[this.name]};
@@ -196,6 +210,18 @@ t.attack.roll=function(body){
     components.total += components.d20;
     return components;
 }
+t.attack.cmb=function(){
+    var components = {
+        'bab':this.bab(),
+        'size':-t.size.mod()
+    }
+    if (components.size <= -2){components.dex = t.abilities.mod('dex')}else{components.str = t.abilities.mod('str')};
+    var i;
+    var total = 0;
+    for (i in components){total+=components[i]};
+    components.total = total;
+    return components;
+};
 // dmg
 t.dmg = {}
 t.dmg.mods = {'mainHand':{},'offHand':{},'all':{}}
@@ -301,7 +327,7 @@ t.load=function(){
 }
 t.checkPenalty=function(){return Math.min(t.load().checkPenalty,t.ac.currentArmor().acPenalty)};
 t.totalSpeed=function(){return Math.min(t.speed, t.ac.currentArmor()['speed'+t.speed], t.load().speed())};
-t.loadLimit=function(load){if(t.quad){return loadData[t.abilities.score.str][load]*sizeData[t.size.name].quad}else{return loadData[t.abilities.score.str][load]*sizeData[t.size.name].carry}}
+t.loadLimit=function(load){if(t.quad){return loadData[t.abilities.score('str')][load]*sizeData[t.size.name].quad}else{return loadData[t.abilities.score('str')][load]*sizeData[t.size.name].carry}}
 // hp
 t.hp.manual = []
 t.hp.max=function(){

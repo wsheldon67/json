@@ -83,7 +83,8 @@ var c = {
     'size':{},
     'saves':{},
     'hp':{'fcb':0,'mods':{},'nl':0},
-    'scripts':{'feats':[],'class':[]}
+    'scripts':{'feats':[],'class':[]},
+    'settings':{'hp':'auto'},
 }
 // store uploaded character in variable c
 const parsed = jsonText => JSON.parse(jsonText);
@@ -108,6 +109,19 @@ function downloadC(){
 // post character to page
 function postC(){
     createTemp();
+    var i;
+    for (i in t.skills.rank){document.getElementById(i+"Rank").value = t.skills.rank[i]};
+    for (i in t.abilities.points){
+        document.getElementById(i+'Points').value = t.abilities.points[i];
+        document.getElementById(i+'Race').value = t.abilities.race[i];
+        document.getElementById(i+'Add').value = t.abilities.add[i];
+    }
+    document.getElementById('fcHP').value = t.hp.fcb;
+    document.getElementById('fcSkill').value = t.skills.fcb;
+    document.getElementById('class').value = t.class;
+    document.getElementById('race').value = t.race;
+    document.getElementById('level').value = t.level;
+    updateType();
 }
 
 function store(key){
