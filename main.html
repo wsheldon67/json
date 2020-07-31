@@ -555,7 +555,7 @@ function addHP(){
     var hp = Number(document.getElementById('regularHpInput').value);
     c.hp.current += hp;
     t.hp.current += hp;
-    if(c.hp.current > c.hp.max().total){c.hp = t.hp.max().total};
+    if(c.hp.current > t.hp.max().total){c.hp = t.hp.max().total};
     document.getElementById('currentHP').innerHTML = c.hp.current;
     document.getElementById('regularHpBar').value = c.hp.current;
 }

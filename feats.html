@@ -1,0 +1,169 @@
+<html>
+<head>
+<script src='featData.js'></script>
+<script src='data.js'></script>
+<link rel="stylesheet" type="text/css" href="style.css">
+<style>
+th,thead {position: sticky; top: 0; background-color: white;}
+</style>
+</head>
+<body style='height: 98%; display: flex; flex-direction: column;' onload='onload()'>
+<div style='display: flex; flex-direction: row; justify-content: space-between; background-color: honeydew;'>
+    <div class='panel'>
+        <div class='row'>Class:<select id='class'></select></div>
+        <div class='row'>Race:<select id='race'></select></div>
+        <div class='row'>Base Attack Bonus:<input type='number' id='bab'></div>
+        <div class='row'>Str:<input type='number' id='str'></div>
+        <div class='row'>Dex:<input type='number' id='dex'></div>
+        <div class='row'>Con:<input type='number' id='con'></div>
+        <div class='row'>Int:<input type='number' id='int'></div>
+        <div class='row'>Wis:<input type='number' id='wis'></div>
+        <div class='row'>Cha:<input type='number' id='cha'></div>
+    </div>
+    <div class='panel'>
+        Feats:<input list='featList' id='feats'>
+        <datalist id='featList'></datalist>
+    </div>
+    <datalist id='tags'></datalist>
+    <div class='panel'>
+        Match All of These:<input list='tags' id='all'>
+    </div>
+    <div class='panel'>
+        Match Any of These:<input list='tags' id='any'>
+    </div>
+    <div class='panel'>
+        Match None of These:<input list='tags' id='none'>
+    </div>
+</div>
+<div style='overflow: auto; height: 100%'>
+    <table>
+        <thead><tr><th>Name</th><th>Description</th><th>Benefits</th><th>Prerequisites</th></tr></thead>
+        <tbody id='results'></tbody>
+    </table>
+</div>
+<script>
+var info = {
+    'class':'Rogue',
+    'race':'Hobgoblin',
+    'bab':4,
+    'str':12,
+    'dex':22,
+    'con':9,
+    'int':18,
+    'wis':11,
+    'cha':7,
+    'feats':["Rapid Reload", "Great Fortitude", "Esoteric Scholar", "Point-Blank Shot", "Weapon Focus"],
+    'all':['combat','offensive'],
+    'any':['attack','damage'],
+    'none':['team'],
+}
+var tagData = ['blanks','combat','skills','simple','defensive','offensive','attack','spells','ac','damage','cmd','cmd','item','team','hp'];
+function testFeat(id){
+    var goodMatch = true;
+    var feat = allFeats[id];
+    if (typeof(feat.class) != 'undefined' && feat.class != info.class){goodMatch = false};
+    if (typeof(feat.bab) != 'undefined' && feat.bab > info.bab){goodMatch = false};
+    if (typeof(feat.race) != 'undefined' && feat.race.indexOf(info.race) == -1){goodMatch = false};
+    var i;
+    for (i of ['str','dex','con','int','wis','cha']){
+        if (typeof(feat[i]) != 'undefined' && feat[i] > info[i]){goodMatch = false};
+    }
+    for (i of info.feats){
+        if (typeof(feat.prerequisite_feats) != 'undefined' && feat.prerequisite_feats.indexOf(i) == -1){goodMatch = false};
+    }
+    // tags
+    for (i of info.all){
+        if (typeof(feat.tags) == 'undefined'){
+            if (i != 'blank'){goodMatch = false};
+        } else {
+            if (feat.tags.indexOf(i) == -1){goodMatch = false};
+        }
+    }
+    var anyMatch = false;
+    for (i of info.any){
+        if (typeof(feat.tags) == 'undefined'){
+            if (i == 'blank'){anyMatch = true};
+        } else {
+            if (feat.tags.indexOf(i) != -1){anyMatch = true};
+        }
+    }
+    if (!anyMatch){goodMatch = false};
+    for (i of info.none){
+        if (typeof(feat.tags) == 'undefined'){
+            if (i == 'blanks'){goodMatch = false};
+        } else {
+            if (feat.tags.indexOf(i) != -1){goodMatch = false};
+        }
+    }
+    return goodMatch;
+}
+function testAll(){
+    var i;
+    var result = {};
+    var counter = 0;
+    for (i in allFeats){
+        if (testFeat(i)){
+            result[i] = allFeats[i];
+            counter++;
+        }
+    }
+    console.log(counter);
+    return result;
+}
+function postResults(){
+    var feats = testAll();
+    for (i in feats){
+        var o = feats[i];
+        var row = document.createElement('tr');
+        var name = document.createElement('td');
+        name.innerHTML = o.name;
+        row.appendChild(name);
+        var desc = document.createElement('td');
+        desc.innerHTML = o.description;
+        row.appendChild(desc);
+        var benefits = document.createElement('td');
+        benefits.innerHTML = o.benefit;
+        row.appendChild(benefits);
+        var prereq = document.createElement('td');
+        prereq.innerHTML = o.prerequisites;
+        row.appendChild(prereq);
+        document.getElementById('results').appendChild(row);
+    }
+}
+function onload(){
+    var i;
+    for (i in classData){
+        var option = document.createElement('option');
+        option.innerHTML = i;
+        document.getElementById('class').appendChild(option);
+    }
+    for (i in raceData){
+        var optionR = document.createElement('option');
+        optionR.innerHTML = i;
+        document.getElementById('race').appendChild(optionR);
+    }
+    for (i in allFeats){
+        var optionF = document.createElement('option');
+        optionF.innerHTML = allFeats[i].name;
+        document.getElementById('featList').appendChild(optionF);
+    }
+    for (i of tagData){
+        var optionT = document.createElement('option');
+        optionT.innerHTML = i;
+        document.getElementById('tags').appendChild(optionT);
+    }
+}
+function updateInfo(){
+    info.class = document.getElementById('class').value;
+    info.race = document.getElementById('race').value;
+    info.bab = Number(document.getElementById('bab').value);
+    info.str = Number(document.getElementById('str').value);
+    info.dex = Number(document.getElementById('dex').value);
+    info.con = Number(document.getElementById('con').value);
+    info.int = Number(document.getElementById('int').value);
+    info.wis = Number(document.getElementById('wis').value);
+    info.cha = Number(document.getElementById('cha').value);
+}
+</script>
+</body>
+</html>

@@ -249,5 +249,13 @@ var scriptFunctions = {
     },'display':function(hp){
         this.txt(hp);
     }
+},'custom':{
+    'load':function(){
+        t.ac.mods.dodge.ruleAdjust = 3;
+    },'txt':function(){
+        scriptText('custom')
+    },'display':function(){
+        this.txt();
+    }
 }
 }

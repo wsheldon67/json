@@ -114,6 +114,9 @@ function leadingZeros(num,digits){
     }
     return numString;
 }
+function n(id){
+    return Number(document.getElementById(id).value);
+}
 // data
 var classData = {
     'Barbarian':{'Type':'Core','StartingWealth':3,'AvgStartingGold':105,'RanksLevel':4,'Player':1,'HitDie':12,'AgeCategory':'Intuitive',

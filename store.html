@@ -1,0 +1,128 @@
+<html>
+<head>
+<style>
+.row{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+</style>
+</head>
+<body class='row' onload='onload()'>
+<table id='items'></table>
+<table id='order'></table>
+<div>
+    <div class='row'><label for='shop'>Shop:</label><input list='shops' id='shop' oninput='info()'></div>
+    <datalist id='shops'></datalist>
+    <div class='row'><label for='popu'>Population:</label><input type='number' id='popu' oninput='pop()' value='3000' step='500'></div>
+    <div class='row'><label for='pop'>Items:</label><input type='number' id='pop' oninput='info()' value='100' step='10'></div>
+    <div class='row'><label for='price'>Price:</label><input type='number' id='price' oninput='info()' value='100' step='5'></div>
+    <button onclick='stock()'>Stock</button>
+</div>
+<script src='itemarry.js'></script>
+<script src='shops.js'></script>
+<script>
+var input = {
+    'shop':'test',
+    'size':8000,
+    'order':{'0':'24 Hours','-1':'2 days','-2':'1 week'},
+    'price':1,
+    'vari':0.15,
+}
+function onload(){
+    var i;
+    for (i in shops){
+        var o = document.createElement('option');
+        o.value = i;
+        document.getElementById('shops').appendChild(o);
+    }
+}
+function info(){
+    input.shop = document.getElementById('shop').value;
+    input.size = Number(document.getElementById('pop').value);
+    input.price = Number(document.getElementById('price').value/100);
+}
+var s = {};
+function stock(){
+    // create weighted lookup
+    var i;
+    var totalWeight = 0;
+    var lookup = [];
+    var cShop = shops[input.shop];
+    for (i in cShop.items){
+        totalWeight += cShop.items[i];
+        var counter = 1;
+        while (counter <= cShop.items[i]){
+            lookup.push(Number(i));
+            counter++;
+        }
+    }
+    // stock
+    s.result = {};
+    var ohCounter = 0;
+    while (ohCounter < input.size){
+        var toAdd = lookup[randBetween(0,lookup.length-1)];
+        if (typeof(s.result[toAdd]) == 'undefined'){
+            s.result[toAdd] = shops[input.shop].start;
+        } else {
+            s.result[toAdd] += 1;
+        }
+        ohCounter++;
+    }
+    post();
+}
+function post(){
+    document.getElementById('items').innerHTML = '';
+    document.getElementById('order').innerHTML = '';
+    var k;
+    for (k in s.result){
+        var div = document.createElement('tr');
+        var lab = document.createElement('td');
+        lab.innerHTML = items[k].name;
+        div.appendChild(lab);
+        var q = document.createElement('td');
+        var price = document.createElement('td');
+        var pValue = items[k].price*input.price;
+        pValue *= Math.random()*input.vari+1-(input.vari/2);
+        if (pValue >= 100){
+            var level = 100;
+        } else if (pValue >= 10){
+            var level = 10;
+        } else {
+            var level = 1;
+        }
+        pValue = Math.round(pValue/level)*level;
+        price.innerHTML = money(pValue);
+        price.title = money(items[k].price);
+        div.appendChild(price);
+        if (s.result[k] > 0){
+            q.innerHTML = s.result[k];
+            div.appendChild(q);
+            document.getElementById('items').appendChild(div);
+        } else {
+            q.innerHTML = input.order[s.result[k]];
+            div.appendChild(q);
+            document.getElementById('order').appendChild(div);
+        }
+    }
+}
+function randBetween(l,h){
+    return Math.floor(Math.random()*(h+1-l)+l);
+}
+function pop(){
+    var pop = Number(document.getElementById('popu').value);
+    input.size = Math.floor(pop/27);
+    document.getElementById('pop').value = input.size;
+}
+function money(copper){
+    if (copper < 10){
+        return copper + "cp";
+    } else if (copper < 100) {
+        return copper/10 + "sp";
+    } else {
+        return copper/100 + "gp";
+    };
+};
+</script>
+</body>
+</html>

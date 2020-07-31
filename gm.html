@@ -7,10 +7,15 @@ th {
     background-color:bisque;
 }
 .center{justify-content: center; text-align: center;}
+.desc{
+    width: 12em;
+    line-height: 1em;
+    height: 2em;
+}
 </style>
 </head>
 <body onload='onload()'>
-<div class='panel' style='width: 350px'>
+<div class='panel' style='width: 35em;'>
     <h2>Skills</h2>
     <h3 onclick='sshow("acrobatics")'>Acrobatics</h3>
     <table class='panel' id='acrobatics' style='display: none;'>
@@ -75,8 +80,10 @@ th {
     <h3 onclick='sshow("disableDevice")'>Disable Device</h3>
     <div class='panel' id='disableDevice' style='display: none;'>
         <div style='justify-content: center; text-align: center;'>Device Complexity</div>
-        <input type='range' min='10' max='40' value='0' step='5' id='deviceComplexity' oninput='disableDevice()'>
-        <div id='deviceComplexityDesc' style='height: 18px; justify-content: center; text-align: center;'></div>
+        <div class='row'>
+            <input type='range' min='10' max='40' value='0' step='5' id='deviceComplexity' oninput='disableDevice()'>
+            <div id='deviceComplexityDesc' style='height: 18px; justify-content: center; text-align: center;'></div>
+        </div>
         <div class='row'><div><input type='checkbox' id='disableTools' oninput='disableDevice()' checked>Use Tools</div><div><input type='checkbox' id='noTrace' oninput='disableDevice()'>Leave No Trace</div></div>
         <div style='justify-content: center; text-align: center;' id='disableDC'>10</div>
     </div>
@@ -127,8 +134,40 @@ th {
         <div class='row' title='To treat a disease means to tend to a single diseased character. Every time the diseased character makes a saving throw against disease effects, you make a Heal check. If your Heal check exceeds the DC of the disease, the character receives a +4 competence bonus on his saving throw against the disease.'>Disease<div>Disease DC</div>10 minutes</div>
     </div>
     <h3 onclick='sshow("intimidate")'>Intimidate</h3>
-    <div class='panel' id='intimidate'>
-        
+    <div class='panel' id='intimidate' style='display: none;'>
+        <div class='row'>Opp.'s Hit Die:<input type='number' value='0' oninput='intimidate()' id='oppHitDie'>Opp.'s Wis Mod:<input type='number' value='0' oninput='intimidate()' id='oppWisMod'></div>
+        <div class='row'>Opp.'s Size:<input type='range' value='0' min='-1' max='1' id='oppSize' oninput='intimidate()'><div class='desc' id='oppSizeDesc'></div></div>
+        <div class='center'>DC:<span id='intimidateDC'>10</span></div>
+    </div>
+    <h3 onclick='sshow("knowledge")'>Knowledge</h3>
+    <div class='panel' id='knowledge'>
+
+    </div>
+    <h3 onclick='sshow("linguistics")'>Linguistics</h3>
+    <div class='panel' id='linguistics' style='display: none;'>
+        <div class='row'><div><span id='decipher'>Decipher: </span><span id='decipherDC'>20</span></div></div>
+        <div class='row'>Text Difficulty:<input type='range' value='20' min='20' max='40' id='textDiff' oninput='linguistics()'><span id='textDiffDesc'></span></div>
+        <div class='row'>Reader's Knowledge of Document<input type='range' value='0' min='-2' max='4' id='kDoc' oninput='linguistics()'><span id='kDocDesc'></span></div>
+        <div class='row'>Reader's Knowledge of Handwriting<input type='range' value='0' min='-2' max='4' id='kHand' oninput='linguistics()'><span id='kHandDesc'></span></div>
+        <div class='row'>
+            <div title='Document is only casually reviewed.'><input type='checkbox' id='casualReview' oninput='linguistics()'>Casual Review</div>
+            <div title='Document contradicts orders or knowledge.'><input type='checkbox' id='contradicts' oninput='linguistics()'>Contradicts</div>
+        </div>
+        <div class='row'>
+            <div>Forger Roll: <input type='number' value='10' id='forgRoll'></div>
+            <div>Reader Roll: <input type='number' value='10' id='readRoll'></div>
+        </div>
+        <div class='row'>
+            <div><select id='doc' oninput='linguistics()'><option value='8'>Generic Document</option><option value='4'>Signature</option><option value='0'>Handwriting</option></select><span id='forgDC'>18</span></div>
+            <div id='readerDC'>10</div>
+        </div>
+    </div>
+    <h3 onclick='sshow("perception")'>Perception</h3>
+    <div class='panel' id='perception'>
+        <div class='row'>Distance (ft.): <input type='number' value='3' min='0' id='pDist' oninput='perception()'></div>
+        <div class='row'>Source Sound<input type='range' id='hear' oninput='perception()' step='5' min='5' max='210' value='60' style='width: 15em;'><span id='hearDesc'></span></div>
+        <div class='row'>Ambient Noise<input type='range' id='ambi' oninput='perception()' step='5' min='0' max='130' value='10' style='width: 15em;'><span id='ambiDesc'></span></div>
+        <div class='center' id='hearDC'>0</div>
     </div>
 </div>
 <div class='panel'>
@@ -169,10 +208,15 @@ var skillDescriptions = {
     'jumping':'If you fail this check by 4 or less, you can attempt a DC 20 Reflex save to grab hold of the other side after having missed the jump. If you fail by 5 or more, you fail to make the jump and fall (or land prone, in the case of a vertical jump).',
     'falling':"When you deliberately fall any distance, even as a result of a missed jump, a DC 15 Acrobatics skill check allows you to ignore the first 10 feet fallen, although you still end up prone if you take damage from a fall.",
     'exactMagical':"You also determine if the item has magic properties, although this success does not grant knowledge of the magic item’s abilities.",
+    'intimidateDC':'Demoralize (cause Shaken condition), give info, take actions that do not endanger it, offer limited assistance.',
+    'decipher':'You can decipher writing in an unfamiliar language or a message written in an incomplete or archaic form.  If you fail, make a DC 5 Wisdom check to avoid drawing a false conclusion.',
 }
 function onload(){
     var i;
-    for (i in rangeDescriptions){rangeDescription(i)};
+    for (i in rangeDescriptions){
+        rangeDescription(i);
+        document.getElementById(i+'Desc').setAttribute('class','desc');
+    }
     for (i in skillDescriptions){document.getElementById(i).title = skillDescriptions[i]};
     acrobatics();
     loadHandleAnimal();
@@ -200,7 +244,13 @@ var rangeDescriptions = {
     'playerAge':{'1':['Young',''],'2':['Adulthood',''],'3':['Middle Age',''],'4':['Old',''],'5':['Venerable','']},
     'disguiseAge':{'1':['Young',''],'2':['Adulthood',''],'3':['Middle Age',''],'4':['Old',''],'5':['Venerable','']},
     'familiarity':{'0':['Never Encountered',''],'2':['Vaguely Familiar',''],'4':['Recognize',''],'6':['Acquaintances',''],'8':['Close Friends',''],'10':['Intimate','']},
-    'medKitUses':{'0':['0',''],'1':['1',''],'2':['2','']}
+    'medKitUses':{'0':['0',''],'1':['1',''],'2':['2','']},
+    'oppSize':{'-1':['Smaller',''],'0':['Same Size',''],'1':['Larger','']},
+    'textDiff':{'20':['Simple',''],'25':['Standard',''],'30':['Exotic','Intricate, exotic or very old']},
+    'kDoc':{'-2':['Unkown',''],'0':['Somewhat Known',''],'2':['Well Known','']},
+    'kHand':{'-2':['Unkown',''],'0':['Somewhat Known',''],'2':['Well Known','']},
+    'hear':{'10':['Rustling Leaves',''],'25':['Whisper',''],'40':['Quiet Conversation',''],'60':['Loud Conversation',''],'80':['Shouting',''],'90':['Heavy Traffic',''],'130':['Trumpet/Horn',''],'150':['Guns/Small Explosion',''],'180':['Large Explosion',''],'210':['Nuclear Explosion','']},
+    'ambi':{'10':['Rustling Leaves',''],'25':['Whisper',''],'40':['Light Rain',''],'60':['Crowded Room',''],'80':['Shouting',''],'90':['Heavy Traffic',''],'130':['Trumpet/Horn',''],'150':['Guns/Small Explosion',''],'180':['Large Explosion',''],'210':['Nuclear Explosion','']},
 }
 function rangeDescription(item){
     var arry = rangeDescriptions[item][document.getElementById(item).value];
@@ -395,6 +445,54 @@ function heal(){
     rangeDescription('medKitUses');
     document.getElementById('healDeadlyWound').innerHTML = {'0':16,'1':18,'2':20}[document.getElementById('medKitUses').value];
 }
+// intimidate
+function intimidate(){
+    rangeDescription('oppSize');
+    var dc = 10 + Number(document.getElementById('oppHitDie').value) + Number(document.getElementById('oppWisMod').value);
+    dc += Number(document.getElementById('oppSize').value)*4;
+    document.getElementById('intimidateDC').innerHTML = dc;
+}
+// knowledge
+// linguistics
+function linguistics(){
+    rangeDescription('textDiff');
+    rangeDescription('kDoc');
+    rangeDescription('kHand');
+    document.getElementById('decipherDC').innerHTML = document.getElementById('textDiff').value;
+    var reqs = {
+        '0':'Need a large sample of the handwriting.',
+        '4':'Need an autograph to copy.',
+        '8':'Need to have seen a similar document before.'
+    }
+    document.getElementById('doc').title = reqs[document.getElementById('doc').value];
+    document.getElementById('forgDC').innerHTML = Number(document.getElementById('forgRoll').value) + Number(document.getElementById('doc').value);
+    var readDC = n('readRoll') + n('kDoc') + n('kHand');
+    if(document.getElementById('casualReview').checked){readDC-=2};
+    if(document.getElementById('contradicts').checked){readDC+=2};
+    document.getElementById('readerDC').innerHTML = readDC;
+}
+// perception
+var perc = {'p':0.95};
+function perception(){
+    rangeDescription('hear');
+    rangeDescription('ambi');
+    perc.dad = n('hear') + 20*Math.log10(3/n('pDist'));
+    perc.ambi=n('ambi');
+    var hearDC = 10/(perc.dad/40)-10+perc.ambi/5;
+    hearDC = Math.round(hearDC);
+    if (hearDC < 0){hearDC = 0};
+    document.getElementById('hearDC').innerHTML = hearDC;
+}
+// perform
+// profession
+// ride
+// sense motive
+// sleight of hand
+// spellcraft
+// stealth
+// survival
+// swim
+// use magic device
 // time
 var timeValues = {'year':5184000,'month':432000,'day':14400,'hour':600,'minute':10,'second':1/6}
 function splitTime(rounds){
